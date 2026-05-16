@@ -8,6 +8,8 @@ import FeaturedSpotlight from "@/components/featured-spotlight";
 import CategoryGrid from "@/components/category-grid";
 import TrendingSection from "@/components/trending-section";
 import StartHere from "@/components/start-here";
+import TypeDistribution from "@/components/type-distribution";
+import Newsletter from "@/components/newsletter";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
@@ -36,6 +38,7 @@ export default function HomePage() {
 
         <CategoryGrid counts={counts} />
         <TrendingSection />
+        <TypeDistribution />
 
         {/* Stacks teaser */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -65,6 +68,7 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        <Newsletter />
       </main>
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

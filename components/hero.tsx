@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Sparkles, ArrowRight } from "lucide-react";
+import { Search, Sparkles, ArrowRight, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -260,6 +260,26 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
           ))}
         </motion.div>
       </div>
+
+      {/* Scroll indicator */}
+      <motion.button
+        onClick={() => {
+          document.getElementById("start-here")?.scrollIntoView({ behavior: "smooth" });
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.6 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors group"
+        aria-label="Explore resources"
+      >
+        <span className="text-xs font-medium tracking-wide">Explore resources</span>
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ChevronDown size={18} />
+        </motion.div>
+      </motion.button>
 
       {/* Bottom fade */}
       <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#030712] to-transparent" />
