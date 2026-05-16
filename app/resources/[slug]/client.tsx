@@ -485,6 +485,125 @@ export default function ResourceDetailClient({ resource, related }: Props) {
               </div>
             </motion.div>
 
+            {/* What's next? */}
+            {(() => {
+              const complexityOrder: string[] = ["beginner", "intermediate", "advanced"];
+              const currentIdx = complexityOrder.indexOf(resource.complexity);
+
+              // Same type, one level up
+              const nextComplexity = complexityOrder[currentIdx + 1];
+              const sameTypeHarder = nextComplexity
+                ? RESOURCES.find(
+                    (r) => r.slug !== resource.slug && r.type === resource.type && r.complexity === nextComplexity
+                  )
+                : null;
+
+              // Related type: different type, most shared tags
+              const relatedType = RESOURCES.filter(
+                (r) => r.slug !== resource.slug && r.type !== resource.type
+              )
+                .map((r) => ({
+                  resource: r,
+                  shared: r.tags.filter((t) => resource.tags.includes(t)).length,
+                }))
+                .filter(({ shared }) => shared > 0)
+                .sort((a, b) => b.shared - a.shared)[0]?.resource ?? null;
+
+              if (!sameTypeHarder && !relatedType) return null;
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.19 }}
+                >
+                  <h2 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">What&apos;s next?</h2>
+                  <div className="space-y-3">
+                    {sameTypeHarder && (
+                      <Link href={`/resources/${sameTypeHarder.slug}`} className="block group">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.07] hover:border-white/[0.14] transition-all">
+                          <div className="shrink-0 mt-0.5">
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                              → Next step
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-200 group-hover:text-white truncate">
+                              {sameTypeHarder.name}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5 truncate">{sameTypeHarder.tagline}</div>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded capitalize"
+                                style={{
+                                  background: TYPE_META[sameTypeHarder.type].bg,
+                                  color: TYPE_META[sameTypeHarder.type].color,
+                                  border: `1px solid ${TYPE_META[sameTypeHarder.type].border}`,
+                                }}
+                              >
+                                {TYPE_META[sameTypeHarder.type].label}
+                              </span>
+                              <span
+                                className={`text-[10px] font-semibold capitalize ${
+                                  sameTypeHarder.complexity === "intermediate"
+                                    ? "text-yellow-400"
+                                    : sameTypeHarder.complexity === "advanced"
+                                    ? "text-red-400"
+                                    : "text-emerald-400"
+                                }`}
+                              >
+                                {sameTypeHarder.complexity}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+                    {relatedType && (
+                      <Link href={`/resources/${relatedType.slug}`} className="block group">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.07] hover:border-white/[0.14] transition-all">
+                          <div className="shrink-0 mt-0.5">
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                              → Related
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-200 group-hover:text-white truncate">
+                              {relatedType.name}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5 truncate">{relatedType.tagline}</div>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded capitalize"
+                                style={{
+                                  background: TYPE_META[relatedType.type].bg,
+                                  color: TYPE_META[relatedType.type].color,
+                                  border: `1px solid ${TYPE_META[relatedType.type].border}`,
+                                }}
+                              >
+                                {TYPE_META[relatedType.type].label}
+                              </span>
+                              <span
+                                className={`text-[10px] font-semibold capitalize ${
+                                  relatedType.complexity === "intermediate"
+                                    ? "text-yellow-400"
+                                    : relatedType.complexity === "advanced"
+                                    ? "text-red-400"
+                                    : "text-emerald-400"
+                                }`}
+                              >
+                                {relatedType.complexity}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })()}
+
             {/* Community reviews */}
             {reviews.length > 0 && (
               <motion.div

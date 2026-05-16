@@ -189,9 +189,16 @@ export default function StartHere() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {recommendations.map((r) => <ResourceCard key={r.id} resource={r} compact />)}
             </div>
-            <div className="text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/stacks" className="inline-flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors">
                 Browse all curated stacks <ArrowRight size={13} />
+              </Link>
+              <span className="text-slate-700 hidden sm:inline">·</span>
+              <Link
+                href={`/paths?role=${role}`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 text-sm font-medium hover:bg-violet-500/25 transition-all"
+              >
+                Follow a learning path <ArrowRight size={13} />
               </Link>
             </div>
           </motion.div>
