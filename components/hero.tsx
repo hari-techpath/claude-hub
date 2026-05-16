@@ -1,0 +1,191 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Search, Sparkles, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+
+interface HeroProps {
+  onSearchOpen: () => void;
+  totalCount: number;
+}
+
+const SEARCH_PLACEHOLDERS = [
+  "MCPs for Snowflake and dbt...",
+  "Agents for data pipeline debugging...",
+  "Prompts for writing SQL queries...",
+  "Extended thinking for ML models...",
+  "Hooks to automate data quality checks...",
+  "Skills for data engineering workflows...",
+  "Best Claude setup for data scientists...",
+];
+
+export default function Hero({ onSearchOpen, totalCount }: HeroProps) {
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const target = SEARCH_PLACEHOLDERS[placeholderIdx];
+    if (!isDeleting && displayText.length < target.length) {
+      timeoutRef.current = setTimeout(() => setDisplayText(target.slice(0, displayText.length + 1)), 60);
+    } else if (!isDeleting && displayText.length === target.length) {
+      timeoutRef.current = setTimeout(() => setIsDeleting(true), 2200);
+    } else if (isDeleting && displayText.length > 0) {
+      timeoutRef.current = setTimeout(() => setDisplayText(displayText.slice(0, -1)), 30);
+    } else if (isDeleting && displayText.length === 0) {
+      setIsDeleting(false);
+      setPlaceholderIdx((i) => (i + 1) % SEARCH_PLACEHOLDERS.length);
+    }
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, [displayText, isDeleting, placeholderIdx]);
+
+  const stats = [
+    { label: "Resources", value: totalCount + "+" },
+    { label: "MCPs", value: "18" },
+    { label: "Skills", value: "12" },
+    { label: "Agents", value: "8" },
+  ];
+
+  return (
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16">
+      {/* Aurora background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="aurora-blob w-[700px] h-[700px] animate-aurora-1"
+          style={{
+            background: "radial-gradient(circle, #7c3aed 0%, #4f46e5 40%, transparent 70%)",
+            top: "-15%",
+            left: "-10%",
+          }}
+        />
+        <div
+          className="aurora-blob w-[600px] h-[600px] animate-aurora-2"
+          style={{
+            background: "radial-gradient(circle, #0891b2 0%, #0e7490 40%, transparent 70%)",
+            top: "20%",
+            right: "-15%",
+          }}
+        />
+        <div
+          className="aurora-blob w-[500px] h-[500px] animate-aurora-3"
+          style={{
+            background: "radial-gradient(circle, #059669 0%, #0d9488 40%, transparent 70%)",
+            bottom: "-10%",
+            left: "30%",
+          }}
+        />
+        {/* Grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        {/* Radial fade */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#030712_80%)]" />
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-sm font-medium mb-8"
+        >
+          <Sparkles size={13} />
+          Claude resources for data professionals
+        </motion.div>
+
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.08] mb-6"
+        >
+          Claude for data people,
+          <br />
+          <span className="gradient-text">done right</span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+        >
+          The curated registry of MCPs, skills, agents, prompts, and tricks for
+          data engineers, data scientists, analysts, and ML engineers.
+        </motion.p>
+
+        {/* Search bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="max-w-2xl mx-auto mb-8"
+        >
+          <button
+            onClick={onSearchOpen}
+            className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/[0.04] border border-white/[0.1] hover:bg-white/[0.07] hover:border-white/[0.18] transition-all group text-left shadow-2xl"
+          >
+            <Search size={18} className="text-slate-500 group-hover:text-violet-400 transition-colors shrink-0" />
+            <span className="text-slate-500 text-base flex-1 truncate">
+              {displayText}
+              <span className="animate-pulse">|</span>
+            </span>
+            <div className="flex items-center gap-1 shrink-0">
+              <kbd className="px-1.5 py-0.5 text-[11px] rounded bg-white/[0.06] text-slate-500 font-mono border border-white/[0.08]">⌘</kbd>
+              <kbd className="px-1.5 py-0.5 text-[11px] rounded bg-white/[0.06] text-slate-500 font-mono border border-white/[0.08]">K</kbd>
+            </div>
+          </button>
+        </motion.div>
+
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex items-center justify-center gap-3 mb-16"
+        >
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-500 hover:bg-violet-400 text-white font-medium text-sm transition-all hover:shadow-lg hover:shadow-violet-500/25"
+          >
+            Explore all resources
+            <ArrowRight size={14} />
+          </Link>
+          <Link
+            href="/explore?type=mcp"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.09] text-slate-300 font-medium text-sm transition-all"
+          >
+            Browse MCPs
+          </Link>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex items-center justify-center gap-8 sm:gap-12"
+        >
+          {stats.map((stat, i) => (
+            <div key={i} className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">{stat.value}</div>
+              <div className="text-xs text-slate-500 mt-0.5">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#030712] to-transparent" />
+    </section>
+  );
+}

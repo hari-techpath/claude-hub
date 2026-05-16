@@ -1,0 +1,32 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+
+export const metadata: Metadata = {
+  title: "Claude Hub — Claude Resources for Data Professionals",
+  description:
+    "Discover the best MCPs, skills, agents, prompts, and tricks for data engineers, data scientists, analysts, and ML engineers. Curated, trending, searchable.",
+  keywords: ["Claude", "MCP", "data engineering", "data science", "SQL", "Python", "dbt", "Snowflake", "Claude Code", "AI agents"],
+  authors: [{ name: "Claude Hub" }],
+  openGraph: {
+    title: "Claude Hub — Claude for data professionals",
+    description: "Curated Claude resources for data engineers, scientists, and analysts",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Claude Hub",
+    description: "Curated Claude resources for data engineers, scientists, and analysts",
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen bg-[#030712] text-slate-100 antialiased">{children}</body>
+    </html>
+  );
+}
