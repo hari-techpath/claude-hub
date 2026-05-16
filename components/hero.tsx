@@ -8,6 +8,7 @@ import Link from "next/link";
 interface HeroProps {
   onSearchOpen: () => void;
   totalCount: number;
+  counts: Record<string, number>;
 }
 
 const SEARCH_PLACEHOLDERS = [
@@ -20,7 +21,7 @@ const SEARCH_PLACEHOLDERS = [
   "Best Claude setup for data scientists...",
 ];
 
-export default function Hero({ onSearchOpen, totalCount }: HeroProps) {
+export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -43,9 +44,9 @@ export default function Hero({ onSearchOpen, totalCount }: HeroProps) {
 
   const stats = [
     { label: "Resources", value: totalCount + "+" },
-    { label: "MCPs", value: "18" },
-    { label: "Skills", value: "12" },
-    { label: "Agents", value: "8" },
+    { label: "MCPs", value: String(counts["mcp"] || 0) },
+    { label: "Skills", value: String(counts["skill"] || 0) },
+    { label: "Agents", value: String(counts["agent"] || 0) },
   ];
 
   return (

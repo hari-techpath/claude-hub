@@ -10,17 +10,18 @@ import TrendingSection from "@/components/trending-section";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
-import { getCounts } from "@/lib/resources";
+import { getCounts, RESOURCES } from "@/lib/resources";
 
 export default function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const counts = getCounts();
+  const totalCount = RESOURCES.length;
 
   return (
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
       <main>
-        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={107} />
+        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={totalCount} counts={counts} />
         <StackStrip />
         <FeaturedSpotlight />
         <CategoryGrid counts={counts} />

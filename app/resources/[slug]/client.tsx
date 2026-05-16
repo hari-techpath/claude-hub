@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
-  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen
+  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
@@ -26,7 +26,16 @@ function formatNumber(n: number): string {
 export default function ResourceDetailClient({ resource, related }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const meta = TYPE_META[resource.type];
+
+  useEffect(() => {
+    try {
+      const prev = JSON.parse(localStorage.getItem("ch-recently-viewed") || "[]") as string[];
+      const updated = [resource.slug, ...prev.filter((s) => s !== resource.slug)].slice(0, 8);
+      localStorage.setItem("ch-recently-viewed", JSON.stringify(updated));
+    } catch { /* ignore */ }
+  }, [resource.slug]);
 
   const handleCopy = () => {
     if (resource.installCommand) {
@@ -34,6 +43,13 @@ export default function ResourceDetailClient({ resource, related }: Props) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/resources/${resource.slug}`;
+    navigator.clipboard.writeText(url);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
   };
 
   return (
@@ -199,6 +215,13 @@ export default function ResourceDetailClient({ resource, related }: Props) {
               className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.07] space-y-2"
             >
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Links</div>
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors w-full"
+              >
+                {shared ? <Check size={14} className="text-green-400" /> : <Share2 size={14} />}
+                {shared ? "Link copied!" : "Copy link"}
+              </button>
               {resource.githubUrl && (
                 <a
                   href={resource.githubUrl}

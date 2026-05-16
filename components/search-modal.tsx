@@ -172,6 +172,26 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     );
                   })}
                 </div>
+                {recentlyViewed.length > 0 && (
+                  <div className="mb-5">
+                    <div className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">Recently viewed</div>
+                    <div className="space-y-1">
+                      {recentlyViewed.map((slug) => {
+                        const r = RESOURCES.find((res) => res.slug === slug);
+                        if (!r) return null;
+                        const meta = TYPE_META[r.type];
+                        return (
+                          <Link key={slug} href={`/resources/${r.slug}`} onClick={onClose}
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/[0.04] transition-colors group">
+                            <span className="w-6 h-6 rounded-md flex items-center justify-center text-xs shrink-0" style={{ background: meta.bg }}>{meta.icon}</span>
+                            <span className="text-xs text-slate-300 truncate">{r.name}</span>
+                            <span className="text-[10px] text-slate-600 ml-auto">{meta.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">Quick searches</div>
                 <div className="flex flex-wrap gap-2">
                   {QUICK_PICKS.map((q) => (
