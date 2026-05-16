@@ -185,6 +185,20 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               </div>
             )}
 
+            {aiLoading && query.length > 3 && results.length === 0 && (
+              <div className="p-2 space-y-1">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-xl">
+                    <div className="w-8 h-8 rounded-lg shimmer shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 w-32 rounded shimmer" />
+                      <div className="h-2.5 w-48 rounded shimmer" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {query && displayResults.length > 0 && (
               <div className="p-2">
                 {aiResults.length > 0 && (
