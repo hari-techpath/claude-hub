@@ -205,6 +205,13 @@ body {
   scrollbar-width: none;
 }
 
+/* Print styles */
+@media print {
+  nav, footer, .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .glass-card { border: 1px solid #ddd !important; background: white !important; }
+}
+
 /* Noise texture overlay */
 .noise::after {
   content: "";

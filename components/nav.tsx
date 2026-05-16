@@ -32,7 +32,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+      className={`no-print fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-[#030712]/90 backdrop-blur-xl border-b border-white/[0.06]"
           : "bg-transparent"

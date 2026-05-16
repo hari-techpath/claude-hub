@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, GitFork, BarChart2 } from "lucide-react";
 import { Resource, TYPE_META } from "@/lib/types";
@@ -129,7 +130,18 @@ function CompareModal({ resources, onClose }: { resources: Resource[]; onClose: 
 
 export default function CompareTray({ resources, onRemove, onClear }: CompareTrayProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const router = useRouter();
   const canCompare = resources.length === 2;
+
+  const handleCompare = () => {
+    if (canCompare) {
+      try {
+        router.push(`/compare/${resources[0].slug}/${resources[1].slug}`);
+      } catch {
+        setModalOpen(true);
+      }
+    }
+  };
 
   return (
     <>
@@ -183,7 +195,7 @@ export default function CompareTray({ resources, onRemove, onClear }: CompareTra
                 </button>
                 {canCompare && (
                   <button
-                    onClick={() => setModalOpen(true)}
+                    onClick={handleCompare}
                     className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors"
                   >
                     Compare

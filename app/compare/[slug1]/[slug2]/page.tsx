@@ -15,7 +15,7 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
-const COMPLEXITY_ORDER = { beginner: 0, intermediate: 1, advanced: 2 };
+const COMPLEXITY_ORDER: Record<string, number> = { beginner: 0, intermediate: 1, advanced: 2 };
 
 export async function generateMetadata({ params }: Props) {
   const { slug1, slug2 } = await params;
@@ -30,40 +30,37 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ComparePage({ params }: Props) {
   const { slug1, slug2 } = await params;
-  const aRaw = getBySlug(slug1);
-  const bRaw = getBySlug(slug2);
+  const rawA = getBySlug(slug1);
+  const rawB = getBySlug(slug2);
 
-  if (!aRaw || !bRaw) {
+  if (!rawA || !rawB) {
     redirect("/explore");
   }
 
-  // Non-null after redirect guard — TS can't narrow through `redirect()`
-  const a = aRaw!;
-  const b = bRaw!;
-
+  // After redirect guard, these are guaranteed non-null
+  const a = rawA;
+  const b = rawB;
   const metaA = TYPE_META[a.type];
   const metaB = TYPE_META[b.type];
 
-  // Helper to determine winner for a row (returns "a", "b", or null)
-  function winnerStars() {
+  function winnerStars(): "a" | "b" | null {
     if (a.stars > b.stars) return "a";
     if (b.stars > a.stars) return "b";
     return null;
   }
-  function winnerForks() {
+  function winnerForks(): "a" | "b" | null {
     if (a.forks > b.forks) return "a";
     if (b.forks > a.forks) return "b";
     return null;
   }
-  function winnerComplexity() {
-    // Lower complexity = better for beginners (winner)
+  function winnerComplexity(): "a" | "b" | null {
     const ca = COMPLEXITY_ORDER[a.complexity];
     const cb = COMPLEXITY_ORDER[b.complexity];
     if (ca < cb) return "a";
     if (cb < ca) return "b";
     return null;
   }
-  function winnerViews() {
+  function winnerViews(): "a" | "b" | null {
     if (a.weeklyViews > b.weeklyViews) return "a";
     if (b.weeklyViews > a.weeklyViews) return "b";
     return null;
@@ -72,11 +69,51 @@ export default async function ComparePage({ params }: Props) {
   const winnerClass = "bg-green-500/10 border-green-500/20";
   const neutralClass = "border-white/[0.06]";
 
-  function cellClass(winner: string | null, side: "a" | "b") {
+  function cellClass(winner: "a" | "b" | null, side: "a" | "b") {
     return `px-4 py-4 text-sm border-b ${winner === side ? winnerClass : neutralClass}`;
   }
 
-  const rows: { label: string; winner: string | null; valA: React.ReactNode; valB: React.ReactNode }[] = [
+  const complexityDots = (complexity: string) =>
+    ["beginner", "intermediate", "advanced"].map((level, i) => (
+      <div
+        key={level}
+        className={`w-5 h-1.5 rounded-full ${
+          COMPLEXITY_ORDER[complexity] >= i
+            ? complexity === "beginner"
+              ? "bg-green-400"
+              : complexity === "intermediate"
+              ? "bg-yellow-400"
+              : "bg-red-400"
+            : "bg-white/[0.1]"
+        }`}
+      />
+    ));
+
+  type Row = { label: string; winner: "a" | "b" | null; valA: React.ReactNode; valB: React.ReactNode };
+
+  const installRow: Row | null =
+    a.installCommand || b.installCommand
+      ? {
+          label: "Install Command",
+          winner: null,
+          valA: a.installCommand ? (
+            <code className="text-xs font-mono text-violet-300 bg-white/[0.04] px-2 py-1 rounded break-all">
+              {a.installCommand}
+            </code>
+          ) : (
+            <span className="text-slate-600 italic">N/A</span>
+          ),
+          valB: b.installCommand ? (
+            <code className="text-xs font-mono text-violet-300 bg-white/[0.04] px-2 py-1 rounded break-all">
+              {b.installCommand}
+            </code>
+          ) : (
+            <span className="text-slate-600 italic">N/A</span>
+          ),
+        }
+      : null;
+
+  const rows: Row[] = [
     {
       label: "Type",
       winner: null,
@@ -100,8 +137,8 @@ export default async function ComparePage({ params }: Props) {
     {
       label: "Stars",
       winner: winnerStars(),
-      valA: <span className="flex items-center gap-1">⭐ {formatNumber(a.stars)}</span>,
-      valB: <span className="flex items-center gap-1">⭐ {formatNumber(b.stars)}</span>,
+      valA: <span className="flex items-center gap-1">&#11088; {formatNumber(a.stars)}</span>,
+      valB: <span className="flex items-center gap-1">&#11088; {formatNumber(b.stars)}</span>,
     },
     {
       label: "Forks",
@@ -114,37 +151,13 @@ export default async function ComparePage({ params }: Props) {
       winner: winnerComplexity(),
       valA: (
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {["beginner", "intermediate", "advanced"].map((level, i) => (
-              <div
-                key={level}
-                className={`w-5 h-1.5 rounded-full ${
-                  COMPLEXITY_ORDER[a.complexity] >= i
-                    ? a.complexity === "beginner" ? "bg-green-400"
-                      : a.complexity === "intermediate" ? "bg-yellow-400" : "bg-red-400"
-                    : "bg-white/[0.1]"
-                }`}
-              />
-            ))}
-          </div>
+          <div className="flex gap-1">{complexityDots(a.complexity)}</div>
           <span className="capitalize text-slate-300">{a.complexity}</span>
         </div>
       ),
       valB: (
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {["beginner", "intermediate", "advanced"].map((level, i) => (
-              <div
-                key={level}
-                className={`w-5 h-1.5 rounded-full ${
-                  COMPLEXITY_ORDER[b.complexity] >= i
-                    ? b.complexity === "beginner" ? "bg-green-400"
-                      : b.complexity === "intermediate" ? "bg-yellow-400" : "bg-red-400"
-                    : "bg-white/[0.1]"
-                }`}
-              />
-            ))}
-          </div>
+          <div className="flex gap-1">{complexityDots(b.complexity)}</div>
           <span className="capitalize text-slate-300">{b.complexity}</span>
         </div>
       ),
@@ -191,35 +204,15 @@ export default async function ComparePage({ params }: Props) {
         </div>
       ),
     },
-    ...(a.installCommand || b.installCommand
-      ? [{
-          label: "Install Command",
-          winner: null as string | null,
-          valA: a.installCommand ? (
-            <code className="text-xs font-mono text-violet-300 bg-white/[0.04] px-2 py-1 rounded break-all">
-              {a.installCommand}
-            </code>
-          ) : <span className="text-slate-600 italic">N/A</span>,
-          valB: b.installCommand ? (
-            <code className="text-xs font-mono text-violet-300 bg-white/[0.04] px-2 py-1 rounded break-all">
-              {b.installCommand}
-            </code>
-          ) : <span className="text-slate-600 italic">N/A</span>,
-        }]
-      : []),
+    ...(installRow ? [installRow] : []),
     {
       label: "Description",
       winner: null,
-      valA: (
-        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{a.description}</p>
-      ),
-      valB: (
-        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{b.description}</p>
-      ),
+      valA: <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{a.description}</p>,
+      valB: <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{b.description}</p>,
     },
   ];
 
-  // Suggested comparisons (exclude current pair)
   const suggested = resources
     .filter((r) => r.slug !== a.slug && r.slug !== b.slug)
     .slice(0, 4);
@@ -232,23 +225,15 @@ export default async function ComparePage({ params }: Props) {
         <div className="text-center mb-10">
           <p className="text-xs text-slate-500 uppercase tracking-widest mb-3">Comparison</p>
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center justify-center gap-3 flex-wrap">
-            <Link
-              href={`/resources/${a.slug}`}
-              className="hover:text-violet-300 transition-colors"
-            >
+            <Link href={`/resources/${a.slug}`} className="hover:text-violet-300 transition-colors">
               {a.name}
             </Link>
             <span className="text-slate-600 font-light">vs</span>
-            <Link
-              href={`/resources/${b.slug}`}
-              className="hover:text-violet-300 transition-colors"
-            >
+            <Link href={`/resources/${b.slug}`} className="hover:text-violet-300 transition-colors">
               {b.name}
             </Link>
           </h1>
-          <p className="text-slate-500 text-sm mt-2">
-            Side-by-side comparison of two Claude resources
-          </p>
+          <p className="text-slate-500 text-sm mt-2">Side-by-side comparison of two Claude resources</p>
           <div className="mt-5 flex items-center justify-center gap-3 flex-wrap">
             <ShareButton />
             <Link
@@ -260,57 +245,45 @@ export default async function ComparePage({ params }: Props) {
           </div>
         </div>
 
-        {/* Resource name headers */}
+        {/* Comparison table */}
         <div className="rounded-2xl border border-white/[0.08] overflow-hidden">
           {/* Column headers */}
           <div className="grid grid-cols-[140px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr] bg-white/[0.03] border-b border-white/[0.08]">
-            <div className="px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Attribute
-            </div>
+            <div className="px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Attribute</div>
             <div className="px-4 py-4 border-l border-white/[0.06]">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                  style={{ background: metaA.bg, color: metaA.color, border: `1px solid ${metaA.border}` }}
-                >
-                  {metaA.icon} {metaA.label}
-                </span>
-              </div>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                style={{ background: metaA.bg, color: metaA.color, border: `1px solid ${metaA.border}` }}
+              >
+                {metaA.icon} {metaA.label}
+              </span>
               <div className="font-bold text-slate-100 mt-1 text-sm sm:text-base">{a.name}</div>
               <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.tagline}</p>
             </div>
             <div className="px-4 py-4 border-l border-white/[0.06]">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                  style={{ background: metaB.bg, color: metaB.color, border: `1px solid ${metaB.border}` }}
-                >
-                  {metaB.icon} {metaB.label}
-                </span>
-              </div>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                style={{ background: metaB.bg, color: metaB.color, border: `1px solid ${metaB.border}` }}
+              >
+                {metaB.icon} {metaB.label}
+              </span>
               <div className="font-bold text-slate-100 mt-1 text-sm sm:text-base">{b.name}</div>
               <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{b.tagline}</p>
             </div>
           </div>
 
-          {/* Rows */}
+          {/* Data rows */}
           {rows.map((row) => (
-            <div
-              key={row.label}
-              className="grid grid-cols-[140px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr]"
-            >
-              {/* Label */}
+            <div key={row.label} className="grid grid-cols-[140px_1fr_1fr] sm:grid-cols-[180px_1fr_1fr]">
               <div className="px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-white/[0.06] flex items-start">
                 {row.label}
               </div>
-              {/* Value A */}
               <div className={`${cellClass(row.winner, "a")} border-l border-white/[0.06]`}>
                 <div className="text-slate-200">{row.valA}</div>
                 {row.winner === "a" && (
                   <span className="text-[10px] text-green-400 font-semibold mt-1 block">Winner</span>
                 )}
               </div>
-              {/* Value B */}
               <div className={`${cellClass(row.winner, "b")} border-l border-white/[0.06]`}>
                 <div className="text-slate-200">{row.valB}</div>
                 {row.winner === "b" && (
@@ -323,29 +296,22 @@ export default async function ComparePage({ params }: Props) {
 
         {/* Links to detail pages */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link
-            href={`/resources/${a.slug}`}
-            className="flex items-center justify-between px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.14] transition-all group"
-          >
-            <div>
-              <div className="text-xs text-slate-500 mb-1">View full details</div>
-              <div className="font-semibold text-slate-200 group-hover:text-white transition-colors">{a.name}</div>
-            </div>
-            <span className="text-slate-500 group-hover:text-slate-300 transition-colors">→</span>
-          </Link>
-          <Link
-            href={`/resources/${b.slug}`}
-            className="flex items-center justify-between px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.14] transition-all group"
-          >
-            <div>
-              <div className="text-xs text-slate-500 mb-1">View full details</div>
-              <div className="font-semibold text-slate-200 group-hover:text-white transition-colors">{b.name}</div>
-            </div>
-            <span className="text-slate-500 group-hover:text-slate-300 transition-colors">→</span>
-          </Link>
+          {[a, b].map((r) => (
+            <Link
+              key={r.slug}
+              href={`/resources/${r.slug}`}
+              className="flex items-center justify-between px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.14] transition-all group"
+            >
+              <div>
+                <div className="text-xs text-slate-500 mb-1">View full details</div>
+                <div className="font-semibold text-slate-200 group-hover:text-white transition-colors">{r.name}</div>
+              </div>
+              <span className="text-slate-500 group-hover:text-slate-300 transition-colors">&#8594;</span>
+            </Link>
+          ))}
         </div>
 
-        {/* Suggested comparisons */}
+        {/* More comparisons */}
         {suggested.length > 0 && (
           <div className="mt-12">
             <h2 className="text-lg font-bold mb-4 text-slate-200">More comparisons</h2>
