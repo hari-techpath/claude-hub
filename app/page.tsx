@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import Nav from "@/components/nav";
 import TrendingTicker from "@/components/trending-ticker";
 import Hero from "@/components/hero";
@@ -9,15 +10,16 @@ import StackStrip from "@/components/stack-strip";
 import FeaturedSpotlight from "@/components/featured-spotlight";
 import CategoryGrid from "@/components/category-grid";
 import TrendingSection from "@/components/trending-section";
-import StartHere from "@/components/start-here";
-import TypeDistribution from "@/components/type-distribution";
-import Newsletter from "@/components/newsletter";
-import CommunityStats from "@/components/community-stats";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
 import { getCounts, getNew, RESOURCES } from "@/lib/resources";
 import ResourceCard from "@/components/resource-card";
+
+const StartHere = dynamic(() => import("@/components/start-here"), { ssr: false });
+const TypeDistribution = dynamic(() => import("@/components/type-distribution"), { ssr: false });
+const CommunityStats = dynamic(() => import("@/components/community-stats"), { ssr: false });
+const Newsletter = dynamic(() => import("@/components/newsletter"), { ssr: false });
 
 export default function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);

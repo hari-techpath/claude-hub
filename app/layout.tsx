@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import KeyboardShortcuts from "@/components/keyboard-shortcuts";
@@ -6,6 +6,12 @@ import { RESOURCES } from "@/lib/resources";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#030712",
+};
 
 export const metadata: Metadata = {
   title: "Claude Hub — Claude Resources for Data Professionals",
