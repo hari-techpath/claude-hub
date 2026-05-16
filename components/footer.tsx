@@ -64,6 +64,7 @@ export default function Footer() {
             <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4">More</div>
             <ul className="space-y-2.5">
               {[
+                { href: "/about", label: "About" },
                 { href: "/collections", label: "Collections" },
                 { href: "/stacks", label: "Stacks" },
                 { href: "/explore?type=setup", label: "Setups" },
