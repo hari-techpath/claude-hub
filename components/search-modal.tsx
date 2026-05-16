@@ -2,11 +2,32 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Sparkles, ArrowRight, Clock } from "lucide-react";
+import { Search, X, Sparkles, ArrowRight, Clock, Tag } from "lucide-react";
 import { Resource, ResourceType, TYPE_META } from "@/lib/types";
 import { localSearch } from "@/lib/search";
 import { RESOURCES } from "@/lib/resources";
 import Link from "next/link";
+
+const HISTORY_KEY = "ch-search-history";
+const MAX_HISTORY = 8;
+
+function loadHistory(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveToHistory(query: string) {
+  const q = query.trim();
+  if (!q) return;
+  try {
+    const prev = loadHistory();
+    const next = [q, ...prev.filter((h) => h.toLowerCase() !== q.toLowerCase())].slice(0, MAX_HISTORY);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+  } catch { /* ignore */ }
+}
 
 interface SearchModalProps {
   open: boolean;
@@ -37,11 +58,14 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const featured = RESOURCES.filter((r) => r.featured).slice(0, 4);
 
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("ch-recently-viewed") || "[]");
       setRecentlyViewed(stored.slice(0, 4));
     } catch { /* ignore */ }
+    setSearchHistory(loadHistory());
   }, [open]);
 
   useEffect(() => {
@@ -61,10 +85,14 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowDown") setSelectedIdx((i) => Math.min(i + 1, displayResults.length - 1));
       if (e.key === "ArrowUp") setSelectedIdx((i) => Math.max(i - 1, 0));
+      if (e.key === "Enter" && query.trim()) {
+        saveToHistory(query);
+        setSearchHistory(loadHistory());
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  }, [open, onClose, query]);
 
   const handleQuery = useCallback((q: string) => {
     setQuery(q);
@@ -104,6 +132,41 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const displayResults = typeFilter
     ? baseResults.filter((r) => r.type === typeFilter)
     : baseResults;
+
+  // Tag suggestions: find tags across all resources matching query prefix
+  const tagSuggestions: string[] = (() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    const allTags = new Set<string>();
+    RESOURCES.forEach((r) => r.tags.forEach((t) => allTags.add(t)));
+    return Array.from(allTags)
+      .filter((t) => t.toLowerCase().includes(q))
+      .slice(0, 3);
+  })();
+
+  const handleResultClick = (q: string) => {
+    if (q.trim()) saveToHistory(q);
+    onClose();
+  };
+
+  const handleHistorySearch = (h: string) => {
+    handleQuery(h);
+  };
+
+  const removeHistoryItem = (item: string) => {
+    const next = searchHistory.filter((h) => h !== item);
+    setSearchHistory(next);
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    } catch { /* ignore */ }
+  };
+
+  const clearHistory = () => {
+    setSearchHistory([]);
+    try {
+      localStorage.removeItem(HISTORY_KEY);
+    } catch { /* ignore */ }
+  };
 
   const TYPE_CHIPS: { label: string; value: ResourceType | null }[] = [
     { label: "All", value: null },
@@ -235,6 +298,37 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     </div>
                   </div>
                 )}
+                {searchHistory.length > 0 && (
+                  <div className="mb-5">
+                    <div className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">Recent searches</div>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {searchHistory.map((h) => (
+                        <div key={h} className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => handleHistorySearch(h)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.07] text-xs text-slate-400 hover:text-slate-200 hover:bg-white/[0.07] transition-all"
+                          >
+                            <Clock size={10} />
+                            {h}
+                          </button>
+                          <button
+                            onClick={() => removeHistoryItem(h)}
+                            className="p-1 text-slate-600 hover:text-slate-400 transition-colors"
+                            aria-label={`Remove "${h}" from history`}
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={clearHistory}
+                      className="text-[11px] text-slate-600 hover:text-slate-400 transition-colors"
+                    >
+                      Clear history
+                    </button>
+                  </div>
+                )}
                 <div className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">Quick searches</div>
                 <div className="flex flex-wrap gap-2">
                   {QUICK_PICKS.map((q) => (
@@ -286,7 +380,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     <Link
                       key={r.id}
                       href={`/resources/${r.slug}`}
-                      onClick={onClose}
+                      onClick={() => handleResultClick(query)}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
                         i === selectedIdx ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
                       }`}
@@ -311,6 +405,54 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     </Link>
                   );
                 })}
+                {tagSuggestions.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-white/[0.05]">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500">
+                      <Tag size={11} />
+                      Tag suggestions
+                    </div>
+                    {tagSuggestions.map((tag) => (
+                      <Link
+                        key={tag}
+                        href={`/explore?q=${encodeURIComponent(tag)}`}
+                        onClick={() => handleResultClick(tag)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-colors"
+                      >
+                        <span className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-white/[0.06]">
+                          <Tag size={11} className="text-slate-400" />
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Search for tag: <span className="text-slate-200 font-medium">{tag}</span>
+                        </span>
+                        <ArrowRight size={11} className="text-slate-600 ml-auto shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {query && displayResults.length === 0 && !aiLoading && tagSuggestions.length > 0 && (
+              <div className="p-2">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500">
+                  <Tag size={11} />
+                  Tag suggestions
+                </div>
+                {tagSuggestions.map((tag) => (
+                  <Link
+                    key={tag}
+                    href={`/explore?q=${encodeURIComponent(tag)}`}
+                    onClick={() => handleResultClick(tag)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-colors"
+                  >
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-white/[0.06]">
+                      <Tag size={11} className="text-slate-400" />
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      Search for tag: <span className="text-slate-200 font-medium">{tag}</span>
+                    </span>
+                    <ArrowRight size={11} className="text-slate-600 ml-auto shrink-0" />
+                  </Link>
+                ))}
               </div>
             )}
           </div>

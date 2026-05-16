@@ -17,6 +17,7 @@ import Link from "next/link";
 import { getCounts, getNew, RESOURCES } from "@/lib/resources";
 import ResourceCard from "@/components/resource-card";
 import PeopleAlsoViewed from "@/components/people-also-viewed";
+import TrendingSearches from "@/components/trending-searches";
 
 const StartHere = dynamic(() => import("@/components/start-here"), { ssr: false });
 const TypeDistribution = dynamic(() => import("@/components/type-distribution"), { ssr: false });
@@ -36,6 +37,7 @@ export default function HomePage() {
       <main>
         <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={totalCount} counts={counts} />
         <StackStrip />
+        <TrendingSearches />
         <FeaturedSpotlight />
 
         {/* Start Here wizard */}
