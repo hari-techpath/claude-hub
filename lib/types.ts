@@ -45,7 +45,7 @@ export interface Resource {
   weeklyViews: number;
 }
 
-export type SortMode = "trending" | "hot" | "new" | "top";
+export type SortMode = "trending" | "hot" | "new" | "top" | "quality";
 
 export const TYPE_META: Record<
   ResourceType,

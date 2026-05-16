@@ -23,6 +23,7 @@ export default function TrendingSection() {
     hot: getHot().slice(0, 9),
     new: getNew().slice(0, 9),
     top: getTop().slice(0, 9),
+    quality: getTop().slice(0, 9),
   };
 
   return (

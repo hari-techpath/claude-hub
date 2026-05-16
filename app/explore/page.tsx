@@ -12,8 +12,9 @@ import ResourceCard from "@/components/resource-card";
 import ResourceOfDay from "@/components/resource-of-day";
 import CompareTray from "@/components/compare-tray";
 import { RESOURCES } from "@/lib/resources";
-import { Resource, ResourceType, UseCase, SortMode, TYPE_META } from "@/lib/types";
+import { Resource, ResourceType, UseCase, SortMode, TYPE_META, Complexity } from "@/lib/types";
 import { localSearch } from "@/lib/search";
+import { qualityScore } from "@/lib/score";
 
 const USE_CASE_LABELS: Record<UseCase, string> = {
   "data-engineering": "Data Engineering",
@@ -31,6 +32,20 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: "hot", label: "Hot" },
   { id: "new", label: "New" },
   { id: "top", label: "Top rated" },
+  { id: "quality", label: "Quality" },
+];
+
+const COMPLEXITY_OPTIONS: { id: Complexity; label: string; color: string; bg: string; border: string }[] = [
+  { id: "beginner", label: "Beginner", color: "#34d399", bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.35)" },
+  { id: "intermediate", label: "Intermediate", color: "#facc15", bg: "rgba(234,179,8,0.15)", border: "rgba(234,179,8,0.35)" },
+  { id: "advanced", label: "Advanced", color: "#f87171", bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.35)" },
+];
+
+const STARS_OPTIONS: { label: string; value: number }[] = [
+  { label: "1k+", value: 1000 },
+  { label: "5k+", value: 5000 },
+  { label: "10k+", value: 10000 },
+  { label: "50k+", value: 50000 },
 ];
 
 function ExploreContent() {
@@ -40,23 +55,25 @@ function ExploreContent() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<ResourceType | null>(initialType);
   const [useCaseFilter, setUseCaseFilter] = useState<UseCase | null>(null);
+  const [complexityFilter, setComplexityFilter] = useState<Complexity | null>(null);
+  const [starsFilter, setStarsFilter] = useState<number | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("trending");
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(24);
   const [compareList, setCompareList] = useState<Resource[]>([]);
 
-  useEffect(() => { setDisplayCount(24); }, [query, typeFilter, useCaseFilter, sortMode]);
+  useEffect(() => {
+    setDisplayCount(24);
+  }, [query, typeFilter, useCaseFilter, complexityFilter, starsFilter, sortMode]);
 
   const handleCompare = useCallback((r: Resource) => {
     setCompareList((prev) => {
       const already = prev.find((x) => x.id === r.id);
       if (already) {
-        // Toggle off
         return prev.filter((x) => x.id !== r.id);
       }
       if (prev.length >= 2) {
-        // Max 2: replace the oldest
         return [prev[1], r];
       }
       return [...prev, r];
@@ -82,6 +99,14 @@ function ExploreContent() {
       list = list.filter((r) => r.useCases.includes(useCaseFilter));
     }
 
+    if (complexityFilter) {
+      list = list.filter((r) => r.complexity === complexityFilter);
+    }
+
+    if (starsFilter) {
+      list = list.filter((r) => r.stars >= starsFilter);
+    }
+
     switch (sortMode) {
       case "trending":
         return [...list].sort((a, b) => (b.trending ? 1 : 0) - (a.trending ? 1 : 0) || b.weeklyViews - a.weeklyViews);
@@ -91,8 +116,10 @@ function ExploreContent() {
         return [...list].sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
       case "top":
         return [...list].sort((a, b) => b.stars - a.stars);
+      case "quality":
+        return [...list].sort((a, b) => qualityScore(b) - qualityScore(a));
     }
-  }, [query, typeFilter, useCaseFilter, sortMode]);
+  }, [query, typeFilter, useCaseFilter, complexityFilter, starsFilter, sortMode]);
 
   const displayed = filtered.slice(0, displayCount);
 
@@ -139,6 +166,48 @@ function ExploreContent() {
       truncate: true,
     },
   ] as const;
+
+  // Active filter chips
+  const activeFilterCount = [typeFilter, useCaseFilter, complexityFilter, starsFilter].filter(Boolean).length;
+
+  const activeChips: { key: string; label: string; onClear: () => void }[] = [];
+  if (typeFilter) {
+    activeChips.push({
+      key: "type",
+      label: `Type: ${TYPE_META[typeFilter].label}`,
+      onClear: () => setTypeFilter(null),
+    });
+  }
+  if (useCaseFilter) {
+    activeChips.push({
+      key: "usecase",
+      label: `Use: ${USE_CASE_LABELS[useCaseFilter]}`,
+      onClear: () => setUseCaseFilter(null),
+    });
+  }
+  if (complexityFilter) {
+    const cx = COMPLEXITY_OPTIONS.find((c) => c.id === complexityFilter);
+    activeChips.push({
+      key: "complexity",
+      label: `Complexity: ${cx?.label ?? complexityFilter}`,
+      onClear: () => setComplexityFilter(null),
+    });
+  }
+  if (starsFilter) {
+    const opt = STARS_OPTIONS.find((o) => o.value === starsFilter);
+    activeChips.push({
+      key: "stars",
+      label: `Stars: ${opt?.label ?? `${starsFilter}+`}`,
+      onClear: () => setStarsFilter(null),
+    });
+  }
+
+  const clearAll = () => {
+    setTypeFilter(null);
+    setUseCaseFilter(null);
+    setComplexityFilter(null);
+    setStarsFilter(null);
+  };
 
   return (
     <>
@@ -229,7 +298,7 @@ function ExploreContent() {
             >
               <SlidersHorizontal size={14} />
               Filters
-              {(typeFilter || useCaseFilter) && (
+              {activeFilterCount > 0 && (
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
               )}
             </button>
@@ -310,7 +379,110 @@ function ExploreContent() {
                     ))}
                   </div>
                 </div>
+
+                {/* Complexity filter */}
+                <div>
+                  <div className="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Complexity</div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setComplexityFilter(null)}
+                      className={`px-3 py-1.5 rounded-full text-xs border transition-all ${
+                        !complexityFilter
+                          ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                          : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {COMPLEXITY_OPTIONS.map((cx) => (
+                      <button
+                        key={cx.id}
+                        onClick={() => setComplexityFilter(complexityFilter === cx.id ? null : cx.id)}
+                        className="px-3 py-1.5 rounded-full text-xs border transition-all"
+                        style={
+                          complexityFilter === cx.id
+                            ? { background: cx.bg, borderColor: cx.border, color: cx.color }
+                            : { background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)", color: "#94a3b8" }
+                        }
+                      >
+                        {cx.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Stars filter */}
+                <div>
+                  <div className="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Stars</div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setStarsFilter(null)}
+                      className={`px-3 py-1.5 rounded-full text-xs border transition-all ${
+                        !starsFilter
+                          ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                          : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {STARS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setStarsFilter(starsFilter === opt.value ? null : opt.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs border transition-all ${
+                          starsFilter === opt.value
+                            ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                            : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Active filter chips */}
+        <AnimatePresence>
+          {activeChips.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-wrap items-center gap-2 mb-5"
+            >
+              {activeChips.map((chip) => (
+                <motion.div
+                  key={chip.key}
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.88 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-white/[0.06] border border-white/[0.1] text-slate-300"
+                >
+                  <span>{chip.label}</span>
+                  <button
+                    onClick={chip.onClear}
+                    className="text-slate-500 hover:text-slate-200 transition-colors ml-0.5"
+                    aria-label={`Clear ${chip.label} filter`}
+                  >
+                    <X size={11} />
+                  </button>
+                </motion.div>
+              ))}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.88 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.88 }}
+                onClick={clearAll}
+                className="px-2.5 py-1 rounded-full text-xs text-slate-500 hover:text-slate-300 border border-white/[0.07] hover:border-white/[0.14] transition-all"
+              >
+                Clear all
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
