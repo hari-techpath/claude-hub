@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
   BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark,
-  ChevronRight, Printer,
+  ChevronRight, Printer, Code2, X,
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
@@ -123,6 +123,121 @@ function Toast({ visible, message }: { visible: boolean; message: string }) {
   );
 }
 
+// ─── Embed Modal ─────────────────────────────────────────────────────────────
+function EmbedModal({ resource, onClose }: { resource: Resource; onClose: () => void }) {
+  const [tab, setTab] = useState<"html" | "markdown">("html");
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+
+  const pageUrl = `https://claude-hub.vercel.app/resources/${resource.slug}`;
+  const badgeUrl = `https://claude-hub.vercel.app/badge/${resource.slug}`;
+
+  const htmlSnippet = `<a href="${pageUrl}" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-family:system-ui;font-size:14px;text-decoration:none;">⚡ ${resource.name} on Claude Hub</a>`;
+  const markdownSnippet = `[![Claude Hub](${badgeUrl})](${pageUrl})`;
+
+  const snippet = tab === "html" ? htmlSnippet : markdownSnippet;
+
+  const handleCopyEmbed = () => {
+    navigator.clipboard.writeText(snippet);
+    setCopiedEmbed(true);
+    setTimeout(() => setCopiedEmbed(false), 2000);
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 8 }}
+          transition={{ duration: 0.22 }}
+          className="relative w-full max-w-lg rounded-2xl bg-[#0d1320]/95 border border-white/[0.1] shadow-2xl backdrop-blur-xl p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-base font-semibold text-slate-200">Embed badge</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Paste this snippet on your site or docs</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Tab switcher */}
+          <div className="flex gap-1 p-1 rounded-lg bg-white/[0.04] border border-white/[0.07] mb-4 w-fit">
+            {(["html", "markdown"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+                  tab === t
+                    ? "bg-white/[0.1] text-slate-200"
+                    : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {t === "html" ? "HTML" : "Markdown"}
+              </button>
+            ))}
+          </div>
+
+          {/* Code block */}
+          <div className="relative mb-5">
+            <pre className="p-4 rounded-xl bg-[#070d18] border border-white/[0.07] text-xs text-slate-300 font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+              {snippet}
+            </pre>
+            <button
+              onClick={handleCopyEmbed}
+              className="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                bg-white/[0.07] border border-white/[0.1] text-xs text-slate-400 hover:text-slate-200
+                hover:bg-white/[0.12] transition-colors"
+            >
+              {copiedEmbed ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+              {copiedEmbed ? "Copied!" : "Copy"}
+            </button>
+          </div>
+
+          {/* Live preview */}
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2.5 font-medium">Preview</p>
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.07] flex items-center justify-center">
+              <a
+                href={pageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  background: "#0a0a0a",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "8px",
+                  color: "#e2e8f0",
+                  fontFamily: "system-ui",
+                  fontSize: "14px",
+                  textDecoration: "none",
+                }}
+              >
+                ⚡ {resource.name} on Claude Hub
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function formatNumber(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
   return n.toString();
@@ -154,6 +269,7 @@ export default function ResourceDetailClient({ resource, related }: Props) {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false);
   const meta = TYPE_META[resource.type];
   const toast = useToast();
 
@@ -522,6 +638,13 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 <Printer size={14} />
                 Print / Save PDF
               </button>
+              <button
+                onClick={() => setEmbedOpen(true)}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors w-full"
+              >
+                <Code2 size={14} />
+                Embed
+              </button>
               {resource.githubUrl && (
                 <a
                   href={resource.githubUrl}
@@ -682,6 +805,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
 
       {/* Toast */}
       <Toast visible={toast.visible} message={toast.message} />
+
+      {/* Embed modal */}
+      {embedOpen && <EmbedModal resource={resource} onClose={() => setEmbedOpen(false)} />}
     </>
   );
 }
