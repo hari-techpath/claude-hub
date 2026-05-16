@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Star, GitFork, ExternalLink, TrendingUp, Flame, Sparkles, BadgeCheck, Plus, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, GitFork, ExternalLink, TrendingUp, Flame, Sparkles, BadgeCheck, Plus, Check, ChevronUp } from "lucide-react";
 import { Resource, TYPE_META } from "@/lib/types";
+import { hasVoted, toggleVote } from "@/lib/votes";
 
 interface ResourceCardProps {
   resource: Resource;
@@ -29,6 +31,23 @@ function timeAgo(dateStr: string): string {
 
 export default function ResourceCard({ resource, compact = false, onCompare, inCompare }: ResourceCardProps) {
   const meta = TYPE_META[resource.type];
+  const [voted, setVoted] = useState(false);
+  const [voteAnim, setVoteAnim] = useState(false);
+
+  useEffect(() => {
+    setVoted(hasVoted(resource.slug));
+  }, [resource.slug]);
+
+  function handleUpvote(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowVoted = toggleVote(resource.slug);
+    setVoted(nowVoted);
+    if (nowVoted) {
+      setVoteAnim(true);
+      setTimeout(() => setVoteAnim(false), 600);
+    }
+  }
 
   return (
     <Link href={`/resources/${resource.slug}`} className="block group transition-transform active:scale-[0.98]" style={{ minHeight: 44 }}>
@@ -154,10 +173,38 @@ export default function ResourceCard({ resource, compact = false, onCompare, inC
         {/* Bottom row: stats + author */}
         <div className="flex items-center justify-between mt-auto relative">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[11px] text-slate-500">
-              <Star size={11} className="text-yellow-500/70" />
-              {formatNumber(resource.stars)}
-            </span>
+            {/* Upvote button — only on non-compact cards */}
+            {!compact && (
+              <button
+                onClick={handleUpvote}
+                title={voted ? "Remove upvote" : "Upvote"}
+                className={`relative flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+                  voted
+                    ? "text-orange-400 bg-orange-500/10 border border-orange-500/20"
+                    : "text-slate-500 hover:text-orange-300 hover:bg-orange-500/10 border border-transparent"
+                }`}
+              >
+                <ChevronUp
+                  size={12}
+                  className={`transition-transform ${voted ? "scale-110" : ""}`}
+                />
+                <span>{formatNumber(resource.stars)}</span>
+                {voteAnim && (
+                  <span
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-orange-400 font-semibold pointer-events-none"
+                    style={{ animation: "countUp 0.6s ease-out both" }}
+                  >
+                    +1
+                  </span>
+                )}
+              </button>
+            )}
+            {compact && (
+              <span className="flex items-center gap-1 text-[11px] text-slate-500">
+                <Star size={11} className="text-yellow-500/70" />
+                {formatNumber(resource.stars)}
+              </span>
+            )}
             <span className="flex items-center gap-1 text-[11px] text-slate-500">
               <GitFork size={11} />
               {formatNumber(resource.forks)}

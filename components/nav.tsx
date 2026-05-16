@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Search, Zap, Menu, X } from "lucide-react";
+import { Search, Zap, Menu, X, Bookmark } from "lucide-react";
 
 interface NavProps {
   onSearchOpen?: () => void;
@@ -54,6 +54,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
             { href: "/", label: "Home" },
             { href: "/explore", label: "Explore" },
             { href: "/stacks", label: "Stacks" },
+            { href: "/saved", label: "Saved" },
             { href: "/explore?type=mcp", label: "MCPs" },
             { href: "/explore?type=skill", label: "Skills" },
             { href: "/explore?type=agent", label: "Agents" },
@@ -107,6 +108,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
               { href: "/", label: "Home" },
               { href: "/explore", label: "Explore All" },
               { href: "/stacks", label: "Stacks" },
+              { href: "/saved", label: "Saved" },
               { href: "/explore?type=mcp", label: "MCPs" },
               { href: "/explore?type=skill", label: "Skills" },
               { href: "/explore?type=agent", label: "Agents" },

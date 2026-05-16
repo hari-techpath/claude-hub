@@ -5,13 +5,14 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
-  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2
+  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
 import { Resource, TYPE_META } from "@/lib/types";
+import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
 
 interface Props {
   resource: Resource;
@@ -48,7 +49,12 @@ export default function ResourceDetailClient({ resource, related }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const meta = TYPE_META[resource.type];
+
+  useEffect(() => {
+    setBookmarked(isBookmarked(resource.slug));
+  }, [resource.slug]);
 
   useEffect(() => {
     try {
@@ -71,6 +77,11 @@ export default function ResourceDetailClient({ resource, related }: Props) {
     navigator.clipboard.writeText(url);
     setShared(true);
     setTimeout(() => setShared(false), 2000);
+  };
+
+  const handleBookmark = () => {
+    const nowBookmarked = toggleBookmark(resource.slug);
+    setBookmarked(nowBookmarked);
   };
 
   return (
@@ -285,6 +296,20 @@ export default function ResourceDetailClient({ resource, related }: Props) {
               className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.07] space-y-2"
             >
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Links</div>
+              <button
+                onClick={handleBookmark}
+                className={`flex items-center gap-2 text-sm transition-colors w-full ${
+                  bookmarked
+                    ? "text-violet-400 hover:text-violet-300"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Bookmark
+                  size={14}
+                  className={bookmarked ? "fill-violet-400 text-violet-400" : ""}
+                />
+                {bookmarked ? "Saved" : "Save"}
+              </button>
               <button
                 onClick={handleShare}
                 className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors w-full"
