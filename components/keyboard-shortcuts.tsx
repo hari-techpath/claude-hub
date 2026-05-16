@@ -13,6 +13,7 @@ const SHORTCUTS = [
   { keys: ["G", "H"], description: "Go to home" },
   { keys: ["G", "E"], description: "Go to explore" },
   { keys: ["G", "S"], description: "Go to stacks" },
+  { keys: ["R"], description: "Random resource" },
 ];
 
 export default function KeyboardShortcuts() {
@@ -20,10 +21,16 @@ export default function KeyboardShortcuts() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "?" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
+      const tag = (e.target as HTMLElement).tagName;
+      const inputFocused = ["INPUT", "TEXTAREA"].includes(tag);
+
+      if (e.key === "?" && !inputFocused) {
         setOpen((v) => !v);
       }
       if (e.key === "Escape") setOpen(false);
+      if (e.key === "r" && !inputFocused) {
+        window.location.href = "/random";
+      }
       // Go to shortcuts
       if (e.key === "g") {
         const next = (e2: KeyboardEvent) => {

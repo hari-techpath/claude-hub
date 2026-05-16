@@ -14,6 +14,7 @@ import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
 import { Resource, TYPE_META, ResourceType } from "@/lib/types";
 import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
+import { qualityScore } from "@/lib/score";
 
 interface Props {
   resource: Resource;
@@ -480,6 +481,56 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 <span className="text-sm text-slate-300 capitalize">{resource.complexity}</span>
               </div>
             </motion.div>
+
+            {/* Quality score */}
+            {(() => {
+              const score = qualityScore(resource);
+              const color = score > 70 ? "#4ade80" : score >= 40 ? "#facc15" : "#f87171";
+              const colorClass = score > 70 ? "text-green-400" : score >= 40 ? "text-yellow-400" : "text-red-400";
+              return (
+                <motion.div
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.28 }}
+                  className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.07]"
+                >
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Quality score</div>
+                  <div className="flex items-center gap-3 mb-2.5">
+                    {/* Circular progress */}
+                    <div className="relative shrink-0" style={{ width: 44, height: 44 }}>
+                      <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                        <circle cx="22" cy="22" r="18" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+                        <circle
+                          cx="22" cy="22" r="18"
+                          stroke={color}
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 18}`}
+                          strokeDashoffset={`${2 * Math.PI * 18 * (1 - score / 100)}`}
+                          transform="rotate(-90 22 22)"
+                        />
+                      </svg>
+                      <span className={`absolute inset-0 flex items-center justify-center text-[11px] font-bold ${colorClass}`}>
+                        {score}
+                      </span>
+                    </div>
+                    <div>
+                      <div className={`text-lg font-bold ${colorClass}`}>{score}<span className="text-slate-500 text-sm font-normal">/100</span></div>
+                      <div className="text-xs text-slate-500">
+                        {score > 70 ? "High quality" : score >= 40 ? "Average" : "Needs work"}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Bar */}
+                  <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${score}%`, background: color }}
+                    />
+                  </div>
+                </motion.div>
+              );
+            })()}
 
             {/* Related resources count */}
             {related.length > 0 && (

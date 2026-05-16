@@ -59,6 +59,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
             { href: "/explore?type=mcp", label: "MCPs" },
             { href: "/explore?type=skill", label: "Skills" },
             { href: "/explore?type=agent", label: "Agents" },
+            { href: "/weekly", label: "Weekly" },
             { href: "/changelog", label: "Changelog" },
             { href: "/submit", label: "Submit" },
           ].map((link) => (
@@ -124,6 +125,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
               { href: "/explore?type=skill", label: "Skills" },
               { href: "/explore?type=agent", label: "Agents" },
               { href: "/explore?type=prompt", label: "Prompts" },
+              { href: "/weekly", label: "Weekly" },
               { href: "/changelog", label: "Changelog" },
               { href: "/submit", label: "Submit" },
             ].map((link) => (
