@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
   BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark,
-  ChevronRight, Printer, Code2, X, AlertTriangle, ChevronDown,
+  ChevronRight, Printer, Code2, X, AlertTriangle, ChevronDown, Lightbulb,
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
@@ -47,6 +47,18 @@ const USED_BY: Record<ResourceType, string[]> = {
   setup: ["GitLab", "Cloudflare", "Fly.io", "Render"],
   hook: ["GitHub", "CircleCI", "Buildkite", "Railway"],
   trick: ["Replit", "Cursor", "Warp", "Fig"],
+};
+
+// ─── Pro tips per resource type ─────────────────────────────────────────────
+const PRO_TIPS: Record<ResourceType, string> = {
+  mcp: "Combine with Claude's Projects feature for persistent context across all your data queries.",
+  skill: "Skills work best when you reference them by name in your system prompt for consistent behavior.",
+  agent: "Run agents in Claude's extended thinking mode for complex multi-step data transformations.",
+  prompt: "Save this as a Project instruction to have it available in every conversation.",
+  architecture: "Share this architecture diagram with your team using the Claude Hub embed feature.",
+  setup: "Add your setup configuration to a .claude/ directory in your project root for team sharing.",
+  hook: "Hooks trigger automatically — test them with a simple dry-run before connecting to production data.",
+  trick: "Tricks work best when added to your Claude system prompt so they're always available.",
 };
 
 // ─── Star rating renderer ────────────────────────────────────────────────────
@@ -619,6 +631,24 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                     <span className="text-sm text-slate-300">{step}</span>
                   </motion.div>
                 ))}
+              </div>
+            </motion.div>
+
+            {/* Pro tip */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.19 }}
+              className="flex items-start gap-3 p-4 rounded-2xl border"
+              style={{
+                background: "linear-gradient(135deg, rgba(251,191,36,0.10) 0%, rgba(245,158,11,0.07) 100%)",
+                borderColor: "rgba(251,191,36,0.25)",
+              }}
+            >
+              <Lightbulb size={16} className="text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Pro tip</p>
+                <p className="text-sm text-amber-100/80 leading-relaxed">{PRO_TIPS[resource.type]}</p>
               </div>
             </motion.div>
 

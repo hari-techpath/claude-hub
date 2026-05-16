@@ -13,6 +13,7 @@ const SHORTCUTS = [
   { keys: ["G", "H"], description: "Go to home" },
   { keys: ["G", "E"], description: "Go to explore" },
   { keys: ["G", "S"], description: "Go to stacks" },
+  { keys: ["B"], description: "Saved resources" },
   { keys: ["R"], description: "Random resource" },
 ];
 
@@ -30,6 +31,9 @@ export default function KeyboardShortcuts() {
       if (e.key === "Escape") setOpen(false);
       if (e.key === "r" && !inputFocused) {
         window.location.href = "/random";
+      }
+      if (e.key === "b" && !inputFocused) {
+        window.location.href = "/saved";
       }
       // Go to shortcuts
       if (e.key === "g") {

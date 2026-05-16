@@ -12,6 +12,7 @@ import FeaturedSpotlight from "@/components/featured-spotlight";
 import CategoryGrid from "@/components/category-grid";
 import TrendingSection from "@/components/trending-section";
 import Footer from "@/components/footer";
+import SponsorBanner from "@/components/sponsor-banner";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
 import { getCounts, getNew, RESOURCES } from "@/lib/resources";
@@ -115,6 +116,7 @@ export default function HomePage() {
         <CommunityStats />
       </main>
       <ActivityFeed />
+      <SponsorBanner />
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
