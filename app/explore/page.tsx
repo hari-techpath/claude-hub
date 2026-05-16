@@ -90,8 +90,8 @@ function ExploreContent() {
         <ResourceOfDay />
 
         {/* Search + filter bar */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] transition-colors">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+          <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] transition-colors">
             <Search size={14} className="text-slate-500 shrink-0" />
             <input
               value={query}
@@ -106,35 +106,37 @@ function ExploreContent() {
             )}
           </div>
 
-          {/* Sort */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.07]">
-            {SORT_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => setSortMode(opt.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  sortMode === opt.id ? "bg-white/[0.1] text-slate-100" : "text-slate-500 hover:text-slate-300"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <div className="flex items-center gap-3">
+            {/* Sort */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.07] overflow-x-auto">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSortMode(opt.id)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    sortMode === opt.id ? "bg-white/[0.1] text-slate-100" : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
 
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
-              showFilters
-                ? "bg-violet-500/15 border-violet-500/30 text-violet-300"
-                : "bg-white/[0.03] border-white/[0.08] text-slate-400 hover:text-slate-300"
-            }`}
-          >
-            <SlidersHorizontal size={14} />
-            Filters
-            {(typeFilter || useCaseFilter) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-            )}
-          </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all shrink-0 ${
+                showFilters
+                  ? "bg-violet-500/15 border-violet-500/30 text-violet-300"
+                  : "bg-white/[0.03] border-white/[0.08] text-slate-400 hover:text-slate-300"
+              }`}
+            >
+              <SlidersHorizontal size={14} />
+              Filters
+              {(typeFilter || useCaseFilter) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Filter panels */}

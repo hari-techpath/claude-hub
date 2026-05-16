@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Star, GitFork, ExternalLink, TrendingUp, Flame, Sparkles, BadgeCheck } from "lucide-react";
+import { Star, GitFork, ExternalLink, TrendingUp, Flame, Sparkles, BadgeCheck, Plus, Check } from "lucide-react";
 import { Resource, TYPE_META } from "@/lib/types";
 
 interface ResourceCardProps {
   resource: Resource;
   compact?: boolean;
+  onCompare?: (r: Resource) => void;
+  inCompare?: boolean;
 }
 
 function formatNumber(n: number): string {
@@ -25,13 +27,15 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-export default function ResourceCard({ resource, compact = false }: ResourceCardProps) {
+export default function ResourceCard({ resource, compact = false, onCompare, inCompare }: ResourceCardProps) {
   const meta = TYPE_META[resource.type];
 
   return (
-    <Link href={`/resources/${resource.slug}`} className="block group">
+    <Link href={`/resources/${resource.slug}`} className="block group transition-transform active:scale-[0.98]" style={{ minHeight: 44 }}>
       <div
-        className="glass-card rounded-2xl p-5 h-full flex flex-col gap-3 relative overflow-hidden"
+        className={`glass-card rounded-2xl p-5 h-full flex flex-col gap-3 relative overflow-hidden transition-shadow ${
+          inCompare ? "ring-2 ring-violet-500/60 shadow-[0_0_20px_rgba(139,92,246,0.25)]" : ""
+        }`}
         style={{ borderColor: `${meta.border}` }}
       >
         {/* Subtle type color glow */}
@@ -73,17 +77,38 @@ export default function ResourceCard({ resource, compact = false }: ResourceCard
             )}
           </div>
 
-          {resource.githubUrl && (
-            <a
-              href={resource.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors shrink-0"
-            >
-              <ExternalLink size={13} />
-            </a>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Compare button — only shown when onCompare provided and not compact */}
+            {onCompare && !compact && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCompare(resource);
+                }}
+                title={inCompare ? "Remove from compare" : "Add to compare"}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  inCompare
+                    ? "bg-violet-500/20 text-violet-400 hover:bg-violet-500/30"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.06]"
+                }`}
+              >
+                {inCompare ? <Check size={13} /> : <Plus size={13} />}
+              </button>
+            )}
+
+            {resource.githubUrl && (
+              <a
+                href={resource.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors"
+              >
+                <ExternalLink size={13} />
+              </a>
+            )}
+          </div>
         </div>
 
         {/* Title + author */}

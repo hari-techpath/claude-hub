@@ -91,11 +91,10 @@ export default function StartHere() {
   const reset = () => { setStep(0); setRole(""); setGoal(""); setTools([]); setDone(false); };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">Not sure where to start?</h2>
-          <p className="text-slate-400 text-sm">Answer 3 questions and we'll build your personal resource list.</p>
+          <p className="text-slate-400 text-sm mt-2">Answer 3 questions and we'll build your personal resource list.</p>
         </div>
 
         {!done ? (
@@ -198,6 +197,6 @@ export default function StartHere() {
           </motion.div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

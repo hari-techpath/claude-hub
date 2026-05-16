@@ -23,6 +23,27 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+function TwitterShareButton({ resource }: { resource: Resource }) {
+  const tweetText = `Just found ${resource.name} on Claude Hub — ${resource.tagline} #ClaudeHub #DataEngineering`;
+  const pageUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/resources/${resource.slug}`
+    : `https://claudehub.dev/resources/${resource.slug}`;
+  const href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(pageUrl)}`;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+    >
+      <Share2 size={14} />
+      Share on X
+      <ExternalLink size={11} className="ml-auto text-slate-600" />
+    </a>
+  );
+}
+
 export default function ResourceDetailClient({ resource, related }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -146,9 +167,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 transition={{ duration: 0.4, delay: 0.15 }}
               >
                 <h2 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Install</h2>
-                <div className="flex items-center gap-2 p-4 rounded-xl bg-[#0a0f1a] border border-white/[0.08] font-mono text-sm group">
+                <div className="flex items-center gap-2 p-4 rounded-xl bg-[#0a0f1a] border border-white/[0.08] font-mono text-sm group overflow-x-auto">
                   <span className="text-violet-400 shrink-0">$</span>
-                  <code className="flex-1 text-slate-200 truncate">{resource.installCommand}</code>
+                  <code className="flex-1 text-slate-200 whitespace-nowrap">{resource.installCommand}</code>
                   <button
                     onClick={handleCopy}
                     className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors shrink-0"
@@ -172,6 +193,55 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 ))}
               </div>
             </motion.div>
+
+            {/* Works with */}
+            {(() => {
+              const KNOWN_TOOLS: { id: string; label: string; color: string }[] = [
+                { id: "snowflake", label: "Snowflake", color: "#29B5E8" },
+                { id: "dbt", label: "dbt", color: "#FF694A" },
+                { id: "airflow", label: "Airflow", color: "#017CEE" },
+                { id: "spark", label: "Spark", color: "#E25A1C" },
+                { id: "kafka", label: "Kafka", color: "#231F20" },
+                { id: "bigquery", label: "BigQuery", color: "#4285F4" },
+                { id: "redshift", label: "Redshift", color: "#8C4FFF" },
+                { id: "databricks", label: "Databricks", color: "#FF3621" },
+                { id: "postgres", label: "Postgres", color: "#336791" },
+                { id: "mysql", label: "MySQL", color: "#4479A1" },
+                { id: "duckdb", label: "DuckDB", color: "#FFC107" },
+                { id: "polars", label: "Polars", color: "#CD792C" },
+                { id: "pandas", label: "Pandas", color: "#130754" },
+                { id: "prefect", label: "Prefect", color: "#024DFD" },
+                { id: "dagster", label: "Dagster", color: "#4F43DD" },
+              ];
+              const matched = KNOWN_TOOLS.filter((t) =>
+                resource.tags.some((tag) => tag.toLowerCase().includes(t.id))
+              );
+              if (matched.length === 0) return null;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.25 }}
+                >
+                  <h2 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Works with</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {matched.map((tool) => (
+                      <span
+                        key={tool.id}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border"
+                        style={{
+                          background: `${tool.color}18`,
+                          borderColor: `${tool.color}40`,
+                          color: tool.color,
+                        }}
+                      >
+                        {tool.label}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })()}
           </div>
 
           {/* Sidebar */}
@@ -222,6 +292,7 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 {shared ? <Check size={14} className="text-green-400" /> : <Share2 size={14} />}
                 {shared ? "Link copied!" : "Copy link"}
               </button>
+              <TwitterShareButton resource={resource} />
               {resource.githubUrl && (
                 <a
                   href={resource.githubUrl}

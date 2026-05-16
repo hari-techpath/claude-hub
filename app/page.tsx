@@ -7,6 +7,7 @@ import StackStrip from "@/components/stack-strip";
 import FeaturedSpotlight from "@/components/featured-spotlight";
 import CategoryGrid from "@/components/category-grid";
 import TrendingSection from "@/components/trending-section";
+import StartHere from "@/components/start-here";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
@@ -24,6 +25,15 @@ export default function HomePage() {
         <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={totalCount} counts={counts} />
         <StackStrip />
         <FeaturedSpotlight />
+
+        {/* Start Here wizard */}
+        <section id="start-here" className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold gradient-text">Find your perfect setup</h2>
+          </div>
+          <StartHere />
+        </section>
+
         <CategoryGrid counts={counts} />
         <TrendingSection />
 
