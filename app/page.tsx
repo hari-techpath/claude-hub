@@ -12,6 +12,7 @@ import TrendingSection from "@/components/trending-section";
 import StartHere from "@/components/start-here";
 import TypeDistribution from "@/components/type-distribution";
 import Newsletter from "@/components/newsletter";
+import CommunityStats from "@/components/community-stats";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
@@ -102,6 +103,7 @@ export default function HomePage() {
           </div>
         </section>
         <Newsletter />
+        <CommunityStats />
       </main>
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

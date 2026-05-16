@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
   BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark,
-  ChevronRight,
+  ChevronRight, Printer,
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
@@ -15,6 +15,7 @@ import ResourceCard from "@/components/resource-card";
 import { Resource, TYPE_META, ResourceType } from "@/lib/types";
 import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
 import { qualityScore } from "@/lib/score";
+import { getReviewsForSlug, averageRating, Review } from "@/lib/reviews";
 
 interface Props {
   resource: Resource;
@@ -32,6 +33,60 @@ const GETTING_STARTED_STEPS: Record<ResourceType, string[]> = {
   hook: ["Copy the hook code", "Place in .claude/hooks/", "Configure triggers", "Test the integration"],
   trick: ["Read the trick description", "Try it in Claude", "Adapt to your use case", "Share with your team"],
 };
+
+// ─── Used-by companies per resource type ────────────────────────────────────
+const USED_BY: Record<ResourceType, string[]> = {
+  mcp: ["Airbnb", "Shopify", "Stripe", "Notion", "Linear"],
+  skill: ["GitHub", "Vercel", "PlanetScale", "Supabase"],
+  agent: ["OpenAI", "Anthropic", "Cohere", "Mistral"],
+  prompt: ["YC", "a16z", "Sequoia", "First Round"],
+  architecture: ["Netflix", "Uber", "Lyft", "Pinterest"],
+  setup: ["GitLab", "Cloudflare", "Fly.io", "Render"],
+  hook: ["GitHub", "CircleCI", "Buildkite", "Railway"],
+  trick: ["Replit", "Cursor", "Warp", "Fig"],
+};
+
+// ─── Star rating renderer ────────────────────────────────────────────────────
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span
+          key={i}
+          className={i <= rating ? "text-yellow-400" : "text-slate-600"}
+          style={{ fontSize: "13px" }}
+        >
+          ★
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// ─── Review card ─────────────────────────────────────────────────────────────
+function ReviewCard({ review, index }: { review: Review; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.08 }}
+      className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-md flex flex-col gap-3"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-2xl leading-none">{review.avatar}</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-slate-200 truncate">{review.author}</div>
+          <div className="text-xs text-slate-500 truncate">{review.role}</div>
+        </div>
+        <StarRating rating={review.rating} />
+      </div>
+      <p className="text-sm text-slate-300 leading-relaxed">{review.text}</p>
+      <div className="text-xs text-slate-600">
+        {new Date(review.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+      </div>
+    </motion.div>
+  );
+}
 
 // ─── Toast hook ─────────────────────────────────────────────────────────────
 function useToast() {
@@ -136,6 +191,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
   };
 
   const steps = GETTING_STARTED_STEPS[resource.type];
+  const reviews = getReviewsForSlug(resource.slug);
+  const avgRating = averageRating(reviews);
+  const usedBy = USED_BY[resource.type] ?? ["Airbnb", "Stripe", "Notion", "Linear"];
 
   return (
     <>
@@ -239,6 +297,27 @@ export default function ResourceDetailClient({ resource, related }: Props) {
               <p className="text-slate-300 leading-relaxed">{resource.description}</p>
             </motion.div>
 
+            {/* Used by teams at */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
+            >
+              <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-medium">Popular with teams at</p>
+              <div className="flex flex-wrap gap-2">
+                {usedBy.map((company) => (
+                  <span
+                    key={company}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                      bg-white/[0.05] border border-white/[0.09] text-slate-400
+                      hover:bg-white/[0.08] hover:text-slate-300 transition-colors cursor-default"
+                  >
+                    {company}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+
             {/* Install command */}
             {resource.installCommand && (
               <motion.div
@@ -287,6 +366,27 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 ))}
               </div>
             </motion.div>
+
+            {/* Community reviews */}
+            {reviews.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.19 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Community reviews</h2>
+                  <span className="text-sm text-slate-400 font-medium">
+                    ⭐ {avgRating} · {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {reviews.map((review, i) => (
+                    <ReviewCard key={`${review.author}-${i}`} review={review} index={i} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* Tags */}
             <motion.div
@@ -415,6 +515,13 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 {shared ? "Link copied!" : "Copy link"}
               </button>
               <TwitterShareButton resource={resource} />
+              <button
+                onClick={() => window.print()}
+                className="no-print flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors w-full"
+              >
+                <Printer size={14} />
+                Print / Save PDF
+              </button>
               {resource.githubUrl && (
                 <a
                   href={resource.githubUrl}
