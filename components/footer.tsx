@@ -2,8 +2,10 @@ import Link from "next/link";
 import { Zap, Github, Twitter } from "lucide-react";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="no-print border-t border-white/[0.06] mt-8">
+    <footer className="no-print mt-8" style={{ borderTop: "1px solid transparent", borderImage: "linear-gradient(90deg, #7c3aed40, #3b82f620, transparent) 1" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
@@ -21,17 +23,19 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 mt-4">
               <a
-                href="https://github.com"
+                href="https://github.com/harshithuppula/claude-hub"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="GitHub repository"
                 className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors"
               >
                 <Github size={15} />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/harshithuppula"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Twitter / X"
                 className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.06] transition-colors"
               >
                 <Twitter size={15} />
@@ -105,11 +109,16 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/[0.06] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-600">
-            © 2025 ClaudeHub. Open source. Not affiliated with Anthropic.
+            © {year} Claude Hub. Open source. Not affiliated with Anthropic.
           </p>
           <p className="text-xs text-slate-600">
             Built for data professionals and AI builders everywhere.
           </p>
+        </div>
+
+        {/* Made with line */}
+        <div className="pt-4 text-center">
+          <p className="text-xs text-slate-700">Made with ❤️ for data teams</p>
         </div>
       </div>
     </footer>

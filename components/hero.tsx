@@ -94,6 +94,10 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16">
+      {/* Grain + grid texture layers */}
+      <div className="hero-grid" />
+      <div className="hero-grain" />
+
       {/* Aurora background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Glow beam — vertical shaft of violet light from top to center */}

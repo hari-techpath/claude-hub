@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import KeyboardShortcuts from "@/components/keyboard-shortcuts";
+import ScrollProgress from "@/components/scroll-progress";
 import { RESOURCES } from "@/lib/resources";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen antialiased" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+        <ScrollProgress />
         {children}
         <KeyboardShortcuts />
       </body>
