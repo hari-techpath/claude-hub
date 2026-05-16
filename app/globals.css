@@ -4,14 +4,32 @@
 
 :root {
   --bg: #030712;
+  --bg-primary: #030712;
+  --bg-card: rgba(255, 255, 255, 0.03);
   --surface: rgba(255, 255, 255, 0.03);
   --surface-hover: rgba(255, 255, 255, 0.06);
   --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.07);
   --border-hover: rgba(255, 255, 255, 0.16);
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --text-muted: #475569;
+  --text-muted: #64748b;
   --accent: #a78bfa;
+}
+
+html.light {
+  --bg: #f8fafc;
+  --bg-primary: #f8fafc;
+  --bg-card: rgba(0, 0, 0, 0.03);
+  --surface: rgba(0, 0, 0, 0.03);
+  --surface-hover: rgba(0, 0, 0, 0.06);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.16);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent: #7c3aed;
 }
 
 * {
@@ -23,7 +41,7 @@ html {
 }
 
 body {
-  background-color: var(--bg);
+  background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

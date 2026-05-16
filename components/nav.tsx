@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Search, Zap, Menu, X, Bookmark, Shuffle } from "lucide-react";
+import ThemeToggle from "@/components/theme-toggle";
 
 interface NavProps {
   onSearchOpen?: () => void;
@@ -73,6 +74,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button
             onClick={onSearchOpen}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] transition-all text-slate-400 hover:text-slate-300 text-sm"
