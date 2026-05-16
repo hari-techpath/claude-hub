@@ -5,6 +5,49 @@ import { Search, Sparkles, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+// ── AnimatedNumber ────────────────────────────────────────────────────────────
+// Counts up from 0 to `target` over `duration` ms using an easing function.
+function AnimatedNumber({ target, duration = 1200, suffix = "" }: { target: number; duration?: number; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (target === 0) return;
+
+    // easeOutQuart
+    function easeOutQuart(t: number) {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
+    function tick(timestamp: number) {
+      if (startRef.current === null) startRef.current = timestamp;
+      const elapsed = timestamp - startRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutQuart(progress);
+      setDisplay(Math.round(eased * target));
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      startRef.current = null;
+    };
+  }, [target, duration]);
+
+  return (
+    <span>
+      {display}
+      {suffix}
+    </span>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface HeroProps {
   onSearchOpen: () => void;
   totalCount: number;
@@ -43,10 +86,10 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
   }, [displayText, isDeleting, placeholderIdx]);
 
   const stats = [
-    { label: "Resources", value: totalCount + "+" },
-    { label: "MCPs", value: String(counts["mcp"] || 0) },
-    { label: "Skills", value: String(counts["skill"] || 0) },
-    { label: "Agents", value: String(counts["agent"] || 0) },
+    { label: "Resources", numeric: totalCount, suffix: "+" },
+    { label: "MCPs", numeric: counts["mcp"] || 0, suffix: "" },
+    { label: "Skills", numeric: counts["skill"] || 0, suffix: "" },
+    { label: "Agents", numeric: counts["agent"] || 0, suffix: "" },
   ];
 
   return (
@@ -209,7 +252,9 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
         >
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold gradient-text">{stat.value}</div>
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">
+                <AnimatedNumber target={stat.numeric} suffix={stat.suffix} duration={1200} />
+              </div>
               <div className="text-xs text-slate-500 mt-0.5">{stat.label}</div>
             </div>
           ))}
