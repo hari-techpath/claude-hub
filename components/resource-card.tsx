@@ -211,7 +211,13 @@ export default function ResourceCard({ resource, compact = false, onCompare, inC
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-            <span className="truncate max-w-[100px]">{resource.author}</span>
+            <Link
+              href={`/authors/${encodeURIComponent(resource.author)}`}
+              onClick={(e) => e.stopPropagation()}
+              className="truncate max-w-[100px] hover:text-slate-200 transition-colors"
+            >
+              {resource.author}
+            </Link>
             <span>·</span>
             <span>{timeAgo(resource.lastUpdated)}</span>
           </div>
