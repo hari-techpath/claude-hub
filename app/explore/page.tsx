@@ -11,6 +11,7 @@ import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
 import ResourceOfDay from "@/components/resource-of-day";
 import CompareTray from "@/components/compare-tray";
+import Link from "next/link";
 import { RESOURCES } from "@/lib/resources";
 import { Resource, ResourceType, UseCase, SortMode, TYPE_META, Complexity } from "@/lib/types";
 import { localSearch } from "@/lib/search";
@@ -47,6 +48,93 @@ const STARS_OPTIONS: { label: string; value: number }[] = [
   { label: "10k+", value: 10000 },
   { label: "50k+", value: 50000 },
 ];
+
+const COMPLEXITY_COLORS: Record<Complexity, string> = {
+  beginner: "#34d399",
+  intermediate: "#facc15",
+  advanced: "#f87171",
+};
+
+const COMPLEXITY_BG: Record<Complexity, string> = {
+  beginner: "rgba(52,211,153,0.2)",
+  intermediate: "rgba(250,204,21,0.2)",
+  advanced: "rgba(248,113,113,0.2)",
+};
+
+const COMPLEXITY_BORDER: Record<Complexity, string> = {
+  beginner: "rgba(52,211,153,0.4)",
+  intermediate: "rgba(250,204,21,0.4)",
+  advanced: "rgba(248,113,113,0.4)",
+};
+
+function ComplexityHeatmap() {
+  const MAX_PER_COL = 8;
+  const orderedTypes: ResourceType[] = ["mcp", "skill", "agent", "prompt", "architecture", "setup", "hook", "trick"];
+
+  const byType = useMemo(() => {
+    const map: Record<ResourceType, Resource[]> = {} as Record<ResourceType, Resource[]>;
+    for (const type of orderedTypes) {
+      map[type] = RESOURCES.filter((r) => r.type === type);
+    }
+    return map;
+  }, []);
+
+  const activeCols = orderedTypes.filter((t) => byType[t].length > 0);
+
+  return (
+    <div className="mb-8 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.07]">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Complexity breakdown</span>
+        {/* Legend */}
+        <div className="flex items-center gap-4">
+          {(["beginner", "intermediate", "advanced"] as Complexity[]).map((c) => (
+            <span key={c} className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ background: COMPLEXITY_COLORS[c], boxShadow: `0 0 4px ${COMPLEXITY_COLORS[c]}60` }}
+              />
+              {c.charAt(0).toUpperCase() + c.slice(1)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-1">
+        {activeCols.map((type) => {
+          const resources = byType[type].slice(0, MAX_PER_COL);
+          const meta = TYPE_META[type];
+          return (
+            <div key={type} className="flex flex-col items-center gap-2 shrink-0">
+              <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: meta.color }}>
+                {meta.label}
+              </span>
+              <div className="flex flex-wrap gap-1.5" style={{ width: resources.length <= 4 ? 60 : 80 }}>
+                {resources.map((r, i) => (
+                  <motion.div
+                    key={r.id}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: i * 0.04 }}
+                  >
+                    <Link href={`/resources/${r.slug}`}>
+                      <div
+                        title={`${r.name} — ${r.complexity}`}
+                        className="w-[10px] h-[10px] rounded-full cursor-pointer transition-transform hover:scale-150"
+                        style={{
+                          background: COMPLEXITY_COLORS[r.complexity],
+                          boxShadow: `0 0 3px ${COMPLEXITY_COLORS[r.complexity]}50`,
+                        }}
+                      />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ExploreContent() {
   const searchParams = useSearchParams();
@@ -252,6 +340,9 @@ function ExploreContent() {
             );
           })}
         </div>
+
+        {/* Complexity heatmap */}
+        <ComplexityHeatmap />
 
         <ResourceOfDay />
 

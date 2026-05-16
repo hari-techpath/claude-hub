@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Nav from "@/components/nav";
+import ActivityFeed from "@/components/activity-feed";
 import TrendingTicker from "@/components/trending-ticker";
 import Hero from "@/components/hero";
 import StackStrip from "@/components/stack-strip";
@@ -111,6 +112,7 @@ export default function HomePage() {
         <Newsletter />
         <CommunityStats />
       </main>
+      <ActivityFeed />
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>

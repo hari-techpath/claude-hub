@@ -18,6 +18,25 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+type FreshnessBadge = { label: string; bg: string; color: string; border: string } | null;
+
+function getFreshness(lastUpdated: string): FreshnessBadge {
+  const today = new Date("2026-05-16").getTime();
+  const updated = new Date(lastUpdated).getTime();
+  if (isNaN(updated)) return null;
+  const diffDays = (today - updated) / 86400000;
+  if (diffDays <= 7) {
+    return { label: "New", bg: "rgba(34,197,94,0.15)", color: "#4ade80", border: "rgba(34,197,94,0.35)" };
+  }
+  if (diffDays <= 30) {
+    return { label: "Recent", bg: "rgba(59,130,246,0.15)", color: "#60a5fa", border: "rgba(59,130,246,0.35)" };
+  }
+  if (diffDays >= 365) {
+    return { label: "Stable", bg: "rgba(100,116,139,0.12)", color: "#94a3b8", border: "rgba(100,116,139,0.25)" };
+  }
+  return null;
+}
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
@@ -33,6 +52,7 @@ export default function ResourceCard({ resource, compact = false, onCompare, inC
   const meta = TYPE_META[resource.type];
   const [voted, setVoted] = useState(false);
   const [voteAnim, setVoteAnim] = useState(false);
+  const freshness = getFreshness(resource.lastUpdated);
 
   useEffect(() => {
     setVoted(hasVoted(resource.slug));
@@ -62,6 +82,16 @@ export default function ResourceCard({ resource, compact = false, onCompare, inC
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
           style={{ background: `radial-gradient(circle at 50% 0%, ${meta.bg} 0%, transparent 60%)` }}
         />
+
+        {/* Freshness badge */}
+        {freshness && (
+          <span
+            className="absolute top-[-1px] right-3 px-2 py-0.5 text-[10px] font-semibold rounded-b-lg z-10 pointer-events-none"
+            style={{ background: freshness.bg, color: freshness.color, border: `1px solid ${freshness.border}`, borderTop: "none" }}
+          >
+            {freshness.label}
+          </span>
+        )}
 
         {/* Top row */}
         <div className="flex items-start justify-between gap-2 relative">
