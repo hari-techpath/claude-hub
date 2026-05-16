@@ -9,6 +9,7 @@ import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
+import ResourceOfDay from "@/components/resource-of-day";
 import { RESOURCES } from "@/lib/resources";
 import { ResourceType, UseCase, SortMode, TYPE_META } from "@/lib/types";
 import { localSearch } from "@/lib/search";
@@ -80,6 +81,8 @@ function ExploreContent() {
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Explore resources</h1>
           <p className="text-slate-400 text-sm">{filtered.length} resources found</p>
         </div>
+
+        <ResourceOfDay />
 
         {/* Search + filter bar */}
         <div className="flex items-center gap-3 mb-6 flex-wrap">

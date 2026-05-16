@@ -14,12 +14,14 @@ interface SearchModalProps {
 }
 
 const QUICK_PICKS = [
-  "PostgreSQL MCP",
-  "code review agent",
-  "extended thinking",
-  "data pipeline prompts",
-  "git hooks",
-  "CI/CD setup",
+  "Snowflake MCP",
+  "dbt debug skill",
+  "SQL query optimization",
+  "data pipeline agent",
+  "DuckDB local analytics",
+  "anomaly detection",
+  "ETL migration agent",
+  "data quality checks",
 ];
 
 export default function SearchModal({ open, onClose }: SearchModalProps) {
@@ -32,6 +34,14 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const aiDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const featured = RESOURCES.filter((r) => r.featured).slice(0, 4);
+
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("ch-recently-viewed") || "[]");
+      setRecentlyViewed(stored.slice(0, 4));
+    } catch { /* ignore */ }
+  }, [open]);
 
   useEffect(() => {
     if (open) {
