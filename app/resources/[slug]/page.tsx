@@ -12,8 +12,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resource = getBySlug(slug);
   if (!resource) return { title: "Not found" };
   return {
-    title: `${resource.name} — ClaudeHub`,
-    description: resource.description,
+    title: `${resource.name} — Claude Hub`,
+    description: resource.tagline,
+    openGraph: {
+      title: `${resource.name} — Claude Hub`,
+      description: resource.tagline,
+    },
   };
 }
 

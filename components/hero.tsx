@@ -96,6 +96,20 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16">
       {/* Aurora background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Glow beam — vertical shaft of violet light from top to center */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: "50%",
+            top: 0,
+            transform: "translateX(-50%)",
+            width: "1px",
+            height: "60vh",
+            background: "linear-gradient(180deg, rgba(139,92,246,0.15) 0%, transparent 100%)",
+            boxShadow: "0 0 40px 20px rgba(139,92,246,0.08)",
+          }}
+        />
+
         <div
           className="aurora-blob w-[700px] h-[700px] animate-aurora-1"
           style={{
@@ -122,29 +136,31 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
         />
         {/* Floating data tool logos */}
         {[
-          { label: "dbt", color: "#FF694A", x: "12%", y: "25%", size: 36, delay: "0s", duration: "18s" },
-          { label: "❄️", color: "#29B5E8", x: "78%", y: "18%", size: 32, delay: "2s", duration: "22s" },
-          { label: "⚡", color: "#E25A1C", x: "88%", y: "55%", size: 28, delay: "4s", duration: "16s" },
-          { label: "🌊", color: "#0E7490", x: "8%", y: "68%", size: 30, delay: "1s", duration: "20s" },
-          { label: "✈️", color: "#017CEE", x: "55%", y: "80%", size: 26, delay: "3s", duration: "24s" },
-          { label: "🦆", color: "#FFC107", x: "35%", y: "15%", size: 28, delay: "5s", duration: "19s" },
-          { label: "🔴", color: "#EF4444", x: "65%", y: "72%", size: 24, delay: "2.5s", duration: "21s" },
+          { label: "dbt", color: "#FF694A", x: "12%", y: "25%", size: 36, delay: "0s", duration: "18s", scale: 1.2, tooltip: "dbt — data build tool" },
+          { label: "❄️", color: "#29B5E8", x: "78%", y: "18%", size: 32, delay: "2s", duration: "22s", scale: 1.0, tooltip: "Snowflake" },
+          { label: "⚡", color: "#E25A1C", x: "88%", y: "55%", size: 28, delay: "4s", duration: "16s", scale: 0.8, tooltip: "Apache Spark" },
+          { label: "🌊", color: "#0E7490", x: "8%", y: "68%", size: 30, delay: "1s", duration: "20s", scale: 1.2, tooltip: "Apache Kafka" },
+          { label: "✈️", color: "#017CEE", x: "55%", y: "80%", size: 26, delay: "3s", duration: "24s", scale: 0.8, tooltip: "Apache Airflow" },
+          { label: "🦆", color: "#FFC107", x: "35%", y: "15%", size: 28, delay: "5s", duration: "19s", scale: 1.0, tooltip: "DuckDB" },
+          { label: "🔴", color: "#EF4444", x: "65%", y: "72%", size: 24, delay: "2.5s", duration: "21s", scale: 0.8, tooltip: "Redis" },
         ].map((logo, i) => (
           <div
             key={i}
-            className="absolute pointer-events-none select-none"
+            className="absolute pointer-events-auto select-none"
+            title={logo.tooltip}
             style={{
               left: logo.x,
               top: logo.y,
-              fontSize: logo.size,
+              fontSize: logo.size * logo.scale,
               opacity: 0.12,
               animation: `floatLogo ${logo.duration} ease-in-out infinite`,
               animationDelay: logo.delay,
               filter: "blur(0.5px)",
+              cursor: "default",
             }}
           >
             {logo.label === "dbt" ? (
-              <span style={{ fontFamily: "monospace", fontWeight: 900, color: logo.color, fontSize: logo.size }}>{logo.label}</span>
+              <span style={{ fontFamily: "monospace", fontWeight: 900, color: logo.color, fontSize: logo.size * logo.scale }}>{logo.label}</span>
             ) : (
               <span>{logo.label}</span>
             )}
@@ -248,16 +264,27 @@ export default function Hero({ onSearchOpen, totalCount, counts }: HeroProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="flex items-center justify-center gap-8 sm:gap-12"
+          className="flex flex-col items-center gap-4"
         >
-          {stats.map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold gradient-text">
-                <AnimatedNumber target={stat.numeric} suffix={stat.suffix} duration={1200} />
+          {/* Live badge */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-medium text-emerald-400">Live</span>
+            <span>— updated weekly</span>
+          </div>
+          <div className="flex items-center justify-center gap-8 sm:gap-12">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold gradient-text">
+                  <AnimatedNumber target={stat.numeric} suffix={stat.suffix} duration={1200} />
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">{stat.label}</div>
               </div>
-              <div className="text-xs text-slate-500 mt-0.5">{stat.label}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </motion.div>
       </div>
 

@@ -2,25 +2,25 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import KeyboardShortcuts from "@/components/keyboard-shortcuts";
+import { RESOURCES } from "@/lib/resources";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "Claude Hub — Claude Resources for Data Professionals",
-  description:
-    "Discover the best MCPs, skills, agents, prompts, and tricks for data engineers, data scientists, analysts, and ML engineers. Curated, trending, searchable.",
+  description: `${RESOURCES.length} Claude resources for data professionals — MCPs, skills, agents, prompts, and tricks for data engineers, data scientists, analysts, and ML engineers. Curated, trending, searchable.`,
   keywords: ["Claude", "MCP", "data engineering", "data science", "SQL", "Python", "dbt", "Snowflake", "Claude Code", "AI agents"],
   authors: [{ name: "Claude Hub" }],
   openGraph: {
     title: "Claude Hub — Claude for data professionals",
-    description: "Curated Claude resources for data engineers, scientists, and analysts",
+    description: `${RESOURCES.length} Claude resources for data engineers, scientists, and analysts`,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Claude Hub",
-    description: "Curated Claude resources for data engineers, scientists, and analysts",
+    description: `${RESOURCES.length} Claude resources for data engineers, scientists, and analysts`,
   },
 };
 

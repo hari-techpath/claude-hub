@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star, GitFork, ArrowRight, BadgeCheck, Zap } from "lucide-react";
+import { Star, GitFork, ArrowRight, BadgeCheck, Zap, Info } from "lucide-react";
 import { getFeatured } from "@/lib/resources";
 import { TYPE_META } from "@/lib/types";
+import { qualityScore } from "@/lib/score";
 
 function formatNumber(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
@@ -12,15 +14,42 @@ function formatNumber(n: number): string {
 }
 
 export default function FeaturedSpotlight() {
+  const [whyOpen, setWhyOpen] = useState(false);
   const featured = getFeatured().slice(0, 1)[0];
   if (!featured) return null;
   const meta = TYPE_META[featured.type];
+  const score = qualityScore(featured);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-3 mb-6">
         <Zap size={14} className="text-yellow-400" />
         <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Editor&apos;s Pick</span>
+        {/* Why featured? info icon + popover */}
+        <div className="relative">
+          <button
+            onClick={() => setWhyOpen((v) => !v)}
+            className="flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors"
+            aria-label="Why featured?"
+          >
+            <Info size={13} />
+          </button>
+          {whyOpen && (
+            <div className="absolute left-0 top-6 z-50 w-72 p-3 rounded-xl bg-[#0f172a] border border-white/[0.1] shadow-2xl text-xs text-slate-300 leading-relaxed">
+              Our editors hand-pick resources that demonstrate exceptional quality, active maintenance, and community adoption.
+              <button
+                onClick={() => setWhyOpen(false)}
+                className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors text-[10px]"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+        {/* Quality score pill */}
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-violet-500/15 border border-violet-500/25 text-violet-300">
+          Score: {score}
+        </span>
       </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -70,14 +99,22 @@ export default function FeaturedSpotlight() {
               <div className="text-xs text-slate-500">by {featured.author}</div>
             </div>
 
-            <Link
-              href={`/resources/${featured.slug}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105"
-              style={{ background: meta.color, color: "#030712" }}
-            >
-              View resource
-              <ArrowRight size={14} />
-            </Link>
+            <div className="flex flex-col items-start gap-2">
+              <Link
+                href={`/resources/${featured.slug}`}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105"
+                style={{ background: meta.color, color: "#030712" }}
+              >
+                View resource
+                <ArrowRight size={14} />
+              </Link>
+              <Link
+                href={`/explore?type=${featured.type}`}
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors ml-1"
+              >
+                View similar {meta.label}s →
+              </Link>
+            </div>
           </div>
 
           {/* Right side: tags + install */}
