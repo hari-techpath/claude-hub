@@ -2,15 +2,24 @@ import Fuse from "fuse.js";
 import { Resource } from "./types";
 import { RESOURCES } from "./resources";
 
+const FUSE_KEYS = [
+  { name: "name", weight: 0.4 },
+  { name: "tagline", weight: 0.3 },
+  { name: "description", weight: 0.15 },
+  { name: "tags", weight: 0.1 },
+  { name: "author", weight: 0.05 },
+];
+
 const fuse = new Fuse(RESOURCES, {
-  keys: [
-    { name: "name", weight: 0.4 },
-    { name: "tagline", weight: 0.3 },
-    { name: "description", weight: 0.15 },
-    { name: "tags", weight: 0.1 },
-    { name: "author", weight: 0.05 },
-  ],
+  keys: FUSE_KEYS,
   threshold: 0.35,
+  includeScore: true,
+  minMatchCharLength: 2,
+});
+
+const fuseSuggest = new Fuse(RESOURCES, {
+  keys: FUSE_KEYS,
+  threshold: 0.6,
   includeScore: true,
   minMatchCharLength: 2,
 });
@@ -18,6 +27,11 @@ const fuse = new Fuse(RESOURCES, {
 export function localSearch(query: string): Resource[] {
   if (!query.trim()) return [];
   return fuse.search(query).map((r) => r.item);
+}
+
+export function suggestSearch(query: string): Resource[] {
+  if (!query.trim()) return [];
+  return fuseSuggest.search(query).slice(0, 3).map((r) => r.item);
 }
 
 export async function aiSearch(query: string): Promise<Resource[]> {

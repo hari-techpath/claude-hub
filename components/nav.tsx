@@ -1,17 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Search, Zap, Menu, X, Bookmark, Shuffle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Search, Zap, Menu, X, Shuffle, ChevronDown } from "lucide-react";
 import ThemeToggle from "@/components/theme-toggle";
 
 interface NavProps {
   onSearchOpen?: () => void;
 }
 
+const PRIMARY_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/explore", label: "Explore" },
+  { href: "/stacks", label: "Stacks" },
+  { href: "/explore?type=mcp", label: "MCPs" },
+  { href: "/submit", label: "Submit" },
+];
+
+const MORE_LINKS = [
+  { href: "/explore?type=skill", label: "Skills" },
+  { href: "/explore?type=agent", label: "Agents" },
+  { href: "/collections", label: "Collections" },
+  { href: "/paths", label: "Paths" },
+  { href: "/weekly", label: "Weekly" },
+  { href: "/build", label: "Build" },
+  { href: "/graph", label: "Graph" },
+  { href: "/battle", label: "Battle" },
+  { href: "/stats", label: "Stats" },
+  { href: "/changelog", label: "Changelog" },
+  { href: "/authors", label: "Authors" },
+  { href: "/saved", label: "Saved" },
+  { href: "/wishlist", label: "Wishlist" },
+  { href: "/tags", label: "Tags" },
+  { href: "/matrix", label: "Matrix" },
+  { href: "/compare", label: "Compare" },
+  { href: "/about", label: "About" },
+];
+
+const ALL_DESKTOP_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/explore", label: "Explore" },
+  { href: "/stacks", label: "Stacks" },
+  { href: "/collections", label: "Collections" },
+  { href: "/saved", label: "Saved" },
+  { href: "/explore?type=mcp", label: "MCPs" },
+  { href: "/explore?type=skill", label: "Skills" },
+  { href: "/explore?type=agent", label: "Agents" },
+  { href: "/build", label: "Build" },
+  { href: "/graph", label: "Graph" },
+  { href: "/weekly", label: "Weekly" },
+  { href: "/changelog", label: "Changelog" },
+  { href: "/submit", label: "Submit" },
+];
+
 export default function Nav({ onSearchOpen }: NavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 24);
@@ -29,6 +75,17 @@ export default function Nav({ onSearchOpen }: NavProps) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onSearchOpen]);
+
+  // Close "More" dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    if (moreOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [moreOpen]);
 
   return (
     <header
@@ -49,23 +106,51 @@ export default function Nav({ onSearchOpen }: NavProps) {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {[
-            { href: "/", label: "Home" },
-            { href: "/explore", label: "Explore" },
-            { href: "/stacks", label: "Stacks" },
-            { href: "/collections", label: "Collections" },
-            { href: "/saved", label: "Saved" },
-            { href: "/explore?type=mcp", label: "MCPs" },
-            { href: "/explore?type=skill", label: "Skills" },
-            { href: "/explore?type=agent", label: "Agents" },
-            { href: "/build", label: "Build" },
-            { href: "/graph", label: "Graph" },
-            { href: "/weekly", label: "Weekly" },
-            { href: "/changelog", label: "Changelog" },
-            { href: "/submit", label: "Submit" },
-          ].map((link) => (
+        {/* md: nav — primary links + More dropdown */}
+        <nav className="hidden md:flex lg:hidden items-center gap-1">
+          {PRIMARY_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-100 rounded-md hover:bg-white/[0.06] transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          {/* More dropdown */}
+          <div ref={moreRef} className="relative">
+            <button
+              onClick={() => setMoreOpen((v) => !v)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-100 rounded-md hover:bg-white/[0.06] transition-colors"
+            >
+              More
+              <ChevronDown
+                size={13}
+                className={`transition-transform duration-200 ${moreOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {moreOpen && (
+              <div className="absolute top-full left-0 mt-2 w-44 rounded-xl border border-white/[0.1] bg-[#0c0f1a]/95 backdrop-blur-xl shadow-2xl py-1.5 z-50">
+                {MORE_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMoreOpen(false)}
+                    className="block px-4 py-2 text-sm text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* lg: nav — all links */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {ALL_DESKTOP_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
