@@ -16,6 +16,8 @@ import { Resource, TYPE_META, ResourceType } from "@/lib/types";
 import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
 import { qualityScore } from "@/lib/score";
 import { getReviewsForSlug, averageRating, Review } from "@/lib/reviews";
+import { getScoredRecommendations } from "@/lib/recommend";
+import { RESOURCES } from "@/lib/resources";
 
 interface Props {
   resource: Resource;
@@ -788,17 +790,49 @@ export default function ResourceDetailClient({ resource, related }: Props) {
           </div>
         </div>
 
-        {/* Related */}
-        {related.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold mb-6">Related resources</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {related.map((r) => (
-                <ResourceCard key={r.id} resource={r} compact />
-              ))}
+        {/* You might also like */}
+        {(() => {
+          const scored = getScoredRecommendations(resource, RESOURCES, 4);
+          if (scored.length === 0) return null;
+          const maxScore = scored[0].score || 1;
+          return (
+            <div className="mt-12">
+              <h2 className="text-xl font-bold mb-2">You might also like</h2>
+              <p className="text-sm text-slate-500 mb-6">Recommended based on tags, type, and complexity</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {scored.map(({ resource: r, score, sharedTags }) => {
+                  const pct = Math.round((score / maxScore) * 100);
+                  const tooltipText =
+                    sharedTags.length > 0
+                      ? `Shared tags: ${sharedTags.join(", ")}`
+                      : "Similar type and complexity";
+                  return (
+                    <div key={r.id} title={tooltipText} className="flex flex-col gap-2">
+                      <ResourceCard resource={r} compact />
+                      {/* Similarity score bar */}
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full bg-emerald-500"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-500 shrink-0 w-8 text-right">{pct}%</span>
+                      </div>
+                      {sharedTags.length > 0 && (
+                        <p className="text-[10px] text-slate-600 px-1 truncate">
+                          {sharedTags.length} shared tag{sharedTags.length !== 1 ? "s" : ""}: {sharedTags.slice(0, 3).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </main>
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

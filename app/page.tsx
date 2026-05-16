@@ -15,6 +15,7 @@ import SearchModal from "@/components/search-modal";
 import Link from "next/link";
 import { getCounts, getNew, RESOURCES } from "@/lib/resources";
 import ResourceCard from "@/components/resource-card";
+import PeopleAlsoViewed from "@/components/people-also-viewed";
 
 const StartHere = dynamic(() => import("@/components/start-here"), { ssr: false });
 const TypeDistribution = dynamic(() => import("@/components/type-distribution"), { ssr: false });
@@ -75,6 +76,9 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* Trending together */}
+        <PeopleAlsoViewed />
 
         {/* Stacks teaser */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
