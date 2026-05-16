@@ -76,6 +76,37 @@ export default function Hero({ onSearchOpen, totalCount }: HeroProps) {
             left: "30%",
           }}
         />
+        {/* Floating data tool logos */}
+        {[
+          { label: "dbt", color: "#FF694A", x: "12%", y: "25%", size: 36, delay: "0s", duration: "18s" },
+          { label: "❄️", color: "#29B5E8", x: "78%", y: "18%", size: 32, delay: "2s", duration: "22s" },
+          { label: "⚡", color: "#E25A1C", x: "88%", y: "55%", size: 28, delay: "4s", duration: "16s" },
+          { label: "🌊", color: "#0E7490", x: "8%", y: "68%", size: 30, delay: "1s", duration: "20s" },
+          { label: "✈️", color: "#017CEE", x: "55%", y: "80%", size: 26, delay: "3s", duration: "24s" },
+          { label: "🦆", color: "#FFC107", x: "35%", y: "15%", size: 28, delay: "5s", duration: "19s" },
+          { label: "🔴", color: "#EF4444", x: "65%", y: "72%", size: 24, delay: "2.5s", duration: "21s" },
+        ].map((logo, i) => (
+          <div
+            key={i}
+            className="absolute pointer-events-none select-none"
+            style={{
+              left: logo.x,
+              top: logo.y,
+              fontSize: logo.size,
+              opacity: 0.12,
+              animation: `floatLogo ${logo.duration} ease-in-out infinite`,
+              animationDelay: logo.delay,
+              filter: "blur(0.5px)",
+            }}
+          >
+            {logo.label === "dbt" ? (
+              <span style={{ fontFamily: "monospace", fontWeight: 900, color: logo.color, fontSize: logo.size }}>{logo.label}</span>
+            ) : (
+              <span>{logo.label}</span>
+            )}
+          </div>
+        ))}
+
         {/* Grid overlay */}
         <div
           className="absolute inset-0 opacity-[0.02]"

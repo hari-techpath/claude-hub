@@ -115,6 +115,17 @@ export default function ResourceCard({ resource, compact = false }: ResourceCard
           </div>
         )}
 
+        {/* View popularity bar */}
+        <div className="w-full h-0.5 bg-white/[0.05] rounded-full overflow-hidden mb-3">
+          <div
+            className="h-full rounded-full transition-all duration-1000"
+            style={{
+              width: `${Math.min((resource.weeklyViews / 10000) * 100, 100)}%`,
+              background: `linear-gradient(90deg, ${meta.color}80, ${meta.color})`,
+            }}
+          />
+        </div>
+
         {/* Bottom row: stats + author */}
         <div className="flex items-center justify-between mt-auto relative">
           <div className="flex items-center gap-3">

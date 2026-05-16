@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Nav from "@/components/nav";
 import Hero from "@/components/hero";
+import StackStrip from "@/components/stack-strip";
+import FeaturedSpotlight from "@/components/featured-spotlight";
 import CategoryGrid from "@/components/category-grid";
 import TrendingSection from "@/components/trending-section";
 import Footer from "@/components/footer";
@@ -18,6 +20,8 @@ export default function HomePage() {
       <Nav onSearchOpen={() => setSearchOpen(true)} />
       <main>
         <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={82} />
+        <StackStrip />
+        <FeaturedSpotlight />
         <CategoryGrid counts={counts} />
         <TrendingSection />
       </main>
