@@ -77,6 +77,7 @@ export default function Footer() {
                 { href: "/explore?type=hook", label: "Hooks" },
                 { href: "/explore?type=trick", label: "Tricks" },
                 { href: "/battle", label: "Battle" },
+                { href: "/stats", label: "Stats" },
                 { href: "/graph", label: "Graph" },
                 { href: "/matrix", label: "Matrix" },
                 { href: "/explore", label: "All resources" },
