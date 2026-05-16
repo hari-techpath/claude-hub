@@ -68,6 +68,7 @@ export default function Footer() {
                 { href: "/explore?type=hook", label: "Hooks" },
                 { href: "/explore?type=trick", label: "Tricks" },
                 { href: "/explore", label: "All resources" },
+                { href: "/tags", label: "Tags" },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">

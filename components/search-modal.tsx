@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Sparkles, ArrowRight, Clock } from "lucide-react";
-import { Resource, TYPE_META } from "@/lib/types";
+import { Resource, ResourceType, TYPE_META } from "@/lib/types";
 import { localSearch } from "@/lib/search";
 import { RESOURCES } from "@/lib/resources";
 import Link from "next/link";
@@ -30,6 +30,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
   const [aiResults, setAiResults] = useState<Resource[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [typeFilter, setTypeFilter] = useState<ResourceType | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const aiDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -50,6 +51,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
       setResults([]);
       setAiResults([]);
       setSelectedIdx(0);
+      setTypeFilter(null);
     }
   }, [open]);
 
@@ -98,7 +100,22 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
     }
   }, []);
 
-  const displayResults = aiResults.length > 0 ? aiResults : results;
+  const baseResults = aiResults.length > 0 ? aiResults : results;
+  const displayResults = typeFilter
+    ? baseResults.filter((r) => r.type === typeFilter)
+    : baseResults;
+
+  const TYPE_CHIPS: { label: string; value: ResourceType | null }[] = [
+    { label: "All", value: null },
+    { label: "MCPs", value: "mcp" },
+    { label: "Skills", value: "skill" },
+    { label: "Agents", value: "agent" },
+    { label: "Prompts", value: "prompt" },
+    { label: "Architectures", value: "architecture" },
+    { label: "Setups", value: "setup" },
+    { label: "Hooks", value: "hook" },
+    { label: "Tricks", value: "trick" },
+  ];
 
   if (!open) return null;
 
@@ -142,6 +159,32 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               <X size={15} />
             </button>
           </div>
+
+          {/* Type filter chips */}
+          {query && (
+            <div className="px-4 py-2.5 border-b border-white/[0.05] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {TYPE_CHIPS.map((chip) => {
+                const isActive = typeFilter === chip.value;
+                const meta = chip.value ? TYPE_META[chip.value] : null;
+                return (
+                  <button
+                    key={chip.label}
+                    onClick={() => setTypeFilter(chip.value)}
+                    className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all"
+                    style={
+                      isActive && meta
+                        ? { background: meta.bg, borderColor: meta.border, color: meta.color }
+                        : isActive && !meta
+                        ? { background: "rgba(139,92,246,0.15)", borderColor: "rgba(139,92,246,0.3)", color: "#a78bfa" }
+                        : { background: "transparent", borderColor: "rgba(255,255,255,0.07)", color: "#64748b" }
+                    }
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Results / empty state */}
           <div className="max-h-[60vh] overflow-y-auto">
