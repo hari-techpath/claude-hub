@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import Nav from "@/components/nav";
+import TrendingTicker from "@/components/trending-ticker";
 import Hero from "@/components/hero";
 import StackStrip from "@/components/stack-strip";
 import FeaturedSpotlight from "@/components/featured-spotlight";
@@ -13,16 +15,19 @@ import Newsletter from "@/components/newsletter";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import Link from "next/link";
-import { getCounts, RESOURCES } from "@/lib/resources";
+import { getCounts, getNew, RESOURCES } from "@/lib/resources";
+import ResourceCard from "@/components/resource-card";
 
 export default function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const counts = getCounts();
   const totalCount = RESOURCES.length;
+  const recentResources = useMemo(() => getNew().slice(0, 6), []);
 
   return (
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
+      <TrendingTicker />
       <main>
         <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={totalCount} counts={counts} />
         <StackStrip />
@@ -39,6 +44,34 @@ export default function HomePage() {
         <CategoryGrid counts={counts} />
         <TrendingSection />
         <TypeDistribution />
+
+        {/* Recently added */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-2xl font-bold">Recently added</h2>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+          </div>
+          <div
+            className="flex gap-4 overflow-x-auto pb-2"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {recentResources.map((resource, i) => (
+              <motion.div
+                key={resource.id}
+                className="min-w-[280px]"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+              >
+                <ResourceCard resource={resource} compact />
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
         {/* Stacks teaser */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">

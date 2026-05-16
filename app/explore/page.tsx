@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, Search, X } from "lucide-react";
+import { SlidersHorizontal, Search, X, Database, TrendingUp, Award, Star } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
@@ -98,6 +98,48 @@ function ExploreContent() {
 
   const types = Object.entries(TYPE_META) as [ResourceType, typeof TYPE_META[ResourceType]][];
 
+  // Stats bar calculations
+  const totalResources = RESOURCES.length;
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const addedThisMonth = RESOURCES.filter((r) => {
+    const t = new Date(r.lastUpdated).getTime();
+    return !isNaN(t) && t >= thirtyDaysAgo;
+  }).length;
+  const typeCounts = RESOURCES.reduce<Record<string, number>>((acc, r) => {
+    acc[r.type] = (acc[r.type] || 0) + 1;
+    return acc;
+  }, {});
+  const mostPopularType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
+  const mostStarred = [...RESOURCES].sort((a, b) => b.stars - a.stars)[0];
+
+  const STATS = [
+    {
+      icon: Database,
+      value: totalResources.toString(),
+      label: "Total resources",
+      color: "#a78bfa",
+    },
+    {
+      icon: TrendingUp,
+      value: addedThisMonth > 0 ? `+${addedThisMonth}` : "—",
+      label: "Added this month",
+      color: "#34d399",
+    },
+    {
+      icon: Award,
+      value: mostPopularType ? TYPE_META[mostPopularType[0] as ResourceType].label : "—",
+      label: "Most popular type",
+      color: "#60a5fa",
+    },
+    {
+      icon: Star,
+      value: mostStarred ? mostStarred.name : "—",
+      label: "Most starred",
+      color: "#fb923c",
+      truncate: true,
+    },
+  ] as const;
+
   return (
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
@@ -106,6 +148,40 @@ function ExploreContent() {
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Explore resources</h1>
           <p className="text-slate-400 text-sm">{displayed.length} of {filtered.length} resources</p>
+        </div>
+
+        {/* Stats bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {STATS.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={stat.label}
+                className="glass-card rounded-2xl p-4 flex items-start gap-3"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+              >
+                <div
+                  className="p-2 rounded-xl shrink-0"
+                  style={{ background: `${stat.color}18`, border: `1px solid ${stat.color}30` }}
+                >
+                  <Icon size={14} style={{ color: stat.color }} />
+                </div>
+                <div className="min-w-0">
+                  <div
+                    className={`text-base font-bold leading-tight mb-0.5 ${(stat as { truncate?: boolean }).truncate ? "truncate" : ""}`}
+                    style={{ color: stat.color }}
+                    title={(stat as { truncate?: boolean }).truncate ? stat.value : undefined}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="text-[11px] text-slate-500 leading-tight">{stat.label}</div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         <ResourceOfDay />
