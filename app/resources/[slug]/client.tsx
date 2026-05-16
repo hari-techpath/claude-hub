@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
   BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark,
-  ChevronRight, Printer, Code2, X,
+  ChevronRight, Printer, Code2, X, AlertTriangle, ChevronDown,
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
@@ -18,6 +18,7 @@ import { qualityScore } from "@/lib/score";
 import { getReviewsForSlug, averageRating, Review } from "@/lib/reviews";
 import { getScoredRecommendations } from "@/lib/recommend";
 import { RESOURCES } from "@/lib/resources";
+import { getVersionsForSlug, getLatestVersion, ResourceVersion } from "@/lib/versions";
 
 interface Props {
   resource: Resource;
@@ -240,6 +241,114 @@ function EmbedModal({ resource, onClose }: { resource: Resource; onClose: () => 
   );
 }
 
+// ─── Version timeline ─────────────────────────────────────────────────────────
+function VersionTimeline({ versions }: { versions: ResourceVersion[] }) {
+  // versions are already sorted newest-first
+  const [expandedSet, setExpandedSet] = useState<Set<string>>(() => {
+    // expand the latest version by default
+    const s = new Set<string>();
+    if (versions.length > 0) s.add(versions[0].version);
+    return s;
+  });
+
+  const toggle = (v: string) => {
+    setExpandedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(v)) next.delete(v);
+      else next.add(v);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      {versions.map((v, i) => {
+        const isLatest = i === 0;
+        const isExpanded = expandedSet.has(v.version);
+        return (
+          <div
+            key={v.version}
+            className={`rounded-xl border transition-all ${
+              isLatest
+                ? "bg-white/[0.05] border-white/[0.14]"
+                : "bg-white/[0.02] border-white/[0.07]"
+            }`}
+          >
+            {/* Row header — always visible */}
+            <button
+              onClick={() => toggle(v.version)}
+              className="w-full flex items-center gap-3 p-3 text-left"
+            >
+              {/* Version badge */}
+              <code
+                className={`shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded ${
+                  isLatest
+                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+                    : "bg-white/[0.06] text-slate-400 border border-white/[0.1]"
+                }`}
+              >
+                v{v.version}
+              </code>
+
+              {/* Breaking badge */}
+              {v.breaking && (
+                <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/15 border border-red-500/30 text-red-400">
+                  <AlertTriangle size={9} />
+                  BREAKING
+                </span>
+              )}
+
+              {isLatest && (
+                <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/25 text-emerald-400">
+                  LATEST
+                </span>
+              )}
+
+              {/* Date */}
+              <span className="text-xs text-slate-500 ml-auto shrink-0">
+                {new Date(v.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+
+              {/* Chevron */}
+              <ChevronDown
+                size={13}
+                className={`shrink-0 text-slate-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {/* Collapsible body */}
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.div
+                  key="body"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <ul className="px-4 pb-3 space-y-1.5">
+                    {v.changes.map((change, ci) => (
+                      <li key={ci} className="flex items-start gap-2 text-xs text-slate-300">
+                        <span className="text-slate-500 shrink-0 mt-0.5">•</span>
+                        {change}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function formatNumber(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
   return n.toString();
@@ -312,6 +421,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
   const reviews = getReviewsForSlug(resource.slug);
   const avgRating = averageRating(reviews);
   const usedBy = USED_BY[resource.type] ?? ["Airbnb", "Stripe", "Notion", "Linear"];
+  const versions = getVersionsForSlug(resource.slug);
+  const latestVersion = getLatestVersion(resource.slug);
+  const hasBreakingLatest = latestVersion?.breaking === true;
 
   return (
     <>
@@ -453,6 +565,31 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                   >
                     {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
                   </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Breaking change banner */}
+            {hasBreakingLatest && latestVersion && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.17 }}
+                className="flex items-start gap-3 p-4 rounded-2xl border"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(234,88,12,0.10) 100%)",
+                  borderColor: "rgba(245,158,11,0.30)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-300">
+                    Breaking changes in v{latestVersion.version}
+                  </p>
+                  <p className="text-xs text-amber-200/70 mt-0.5">
+                    This version includes breaking changes. Review the migration guide before upgrading.
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -638,6 +775,20 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 ))}
               </div>
             </motion.div>
+
+            {/* Version history */}
+            {versions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.21 }}
+              >
+                <h2 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">
+                  Version history
+                </h2>
+                <VersionTimeline versions={versions} />
+              </motion.div>
+            )}
 
             {/* Works with */}
             {(() => {
