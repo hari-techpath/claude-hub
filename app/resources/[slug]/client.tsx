@@ -1,22 +1,70 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, ExternalLink, Copy, Check, ArrowLeft,
-  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark
+  BadgeCheck, TrendingUp, Flame, Sparkles, Globe, BookOpen, Share2, Bookmark,
+  ChevronRight,
 } from "lucide-react";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
-import { Resource, TYPE_META } from "@/lib/types";
+import { Resource, TYPE_META, ResourceType } from "@/lib/types";
 import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
 
 interface Props {
   resource: Resource;
   related: Resource[];
+}
+
+// ─── Getting started steps per type ────────────────────────────────────────
+const GETTING_STARTED_STEPS: Record<ResourceType, string[]> = {
+  mcp: ["Install the package", "Add to your Claude config", "Restart Claude", "Test with a prompt"],
+  skill: ["Copy the skill file", "Place in .claude/skills/", "Invoke with /skill-name", "Customize for your workflow"],
+  agent: ["Install via npm/pip", "Configure API keys", "Run the agent", "Review outputs"],
+  prompt: ["Copy the prompt", "Paste into Claude", "Fill in variables", "Iterate on the output"],
+  architecture: ["Read the architecture overview", "Clone the reference repo", "Adapt to your stack", "Deploy and monitor"],
+  setup: ["Follow the setup guide", "Install dependencies", "Configure environment", "Test your setup"],
+  hook: ["Copy the hook code", "Place in .claude/hooks/", "Configure triggers", "Test the integration"],
+  trick: ["Read the trick description", "Try it in Claude", "Adapt to your use case", "Share with your team"],
+};
+
+// ─── Toast hook ─────────────────────────────────────────────────────────────
+function useToast() {
+  const [visible, setVisible] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const show = useCallback((msg: string) => {
+    setMessage(msg);
+    setVisible(true);
+    setTimeout(() => setVisible(false), 2500);
+  }, []);
+
+  return { visible, message, show };
+}
+
+// ─── Toast component ─────────────────────────────────────────────────────────
+function Toast({ visible, message }: { visible: boolean; message: string }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 8, scale: 0.95 }}
+          transition={{ duration: 0.22 }}
+          className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl
+            bg-[#0d1320]/90 border border-white/[0.12] shadow-xl backdrop-blur-md text-sm text-slate-200"
+        >
+          <Check size={14} className="text-green-400 shrink-0" />
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
 function formatNumber(n: number): string {
@@ -51,6 +99,7 @@ export default function ResourceDetailClient({ resource, related }: Props) {
   const [shared, setShared] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const meta = TYPE_META[resource.type];
+  const toast = useToast();
 
   useEffect(() => {
     setBookmarked(isBookmarked(resource.slug));
@@ -69,6 +118,7 @@ export default function ResourceDetailClient({ resource, related }: Props) {
       navigator.clipboard.writeText(resource.installCommand);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast.show("Install command copied!");
     }
   };
 
@@ -84,10 +134,28 @@ export default function ResourceDetailClient({ resource, related }: Props) {
     setBookmarked(nowBookmarked);
   };
 
+  const steps = GETTING_STARTED_STEPS[resource.type];
+
   return (
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-xs text-slate-500 mb-3 flex-wrap" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
+          <ChevronRight size={11} className="shrink-0" />
+          <Link href="/explore" className="hover:text-slate-300 transition-colors">Explore</Link>
+          <ChevronRight size={11} className="shrink-0" />
+          <Link
+            href={`/explore?type=${resource.type}`}
+            className="hover:text-slate-300 transition-colors"
+          >
+            {meta.label}
+          </Link>
+          <ChevronRight size={11} className="shrink-0" />
+          <span className="text-slate-400 truncate max-w-[180px]">{resource.name}</span>
+        </nav>
+
         {/* Back */}
         <Link
           href="/explore"
@@ -190,6 +258,34 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 </div>
               </motion.div>
             )}
+
+            {/* Getting started */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+            >
+              <h2 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Getting started</h2>
+              <div className="space-y-3">
+                {steps.map((step, i) => (
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.22 + i * 0.07 }}
+                    className="flex items-center gap-3"
+                  >
+                    <span
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{ background: meta.bg, color: meta.color, border: `1px solid ${meta.border}` }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-sm text-slate-300">{step}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
 
             {/* Tags */}
             <motion.div
@@ -384,6 +480,30 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 <span className="text-sm text-slate-300 capitalize">{resource.complexity}</span>
               </div>
             </motion.div>
+
+            {/* Related resources count */}
+            {related.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.07]"
+              >
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Similar</div>
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
+                    bg-white/[0.04] border border-white/[0.1] text-slate-300 backdrop-blur-sm"
+                >
+                  <span
+                    className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    style={{ background: meta.bg, color: meta.color }}
+                  >
+                    {related.length}
+                  </span>
+                  {related.length} similar resource{related.length !== 1 ? "s" : ""}
+                </span>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -401,6 +521,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
       </main>
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Toast */}
+      <Toast visible={toast.visible} message={toast.message} />
     </>
   );
 }
