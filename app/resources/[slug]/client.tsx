@@ -19,6 +19,7 @@ import { getReviewsForSlug, averageRating, Review } from "@/lib/reviews";
 import { getScoredRecommendations } from "@/lib/recommend";
 import { RESOURCES } from "@/lib/resources";
 import { getVersionsForSlug, getLatestVersion, ResourceVersion } from "@/lib/versions";
+import { getSnippetsForSlug, CodeSnippet } from "@/lib/snippets";
 
 interface Props {
   resource: Resource;
@@ -387,6 +388,96 @@ function TwitterShareButton({ resource }: { resource: Resource }) {
   );
 }
 
+// ─── Code Examples section ───────────────────────────────────────────────────
+function CodeExamples({ snippets }: { snippets: CodeSnippet[] }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const active = snippets[activeIdx];
+
+  const handleCopySnippet = (idx: number) => {
+    navigator.clipboard.writeText(snippets[idx].code);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const lines = active.code.split("\n");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.16 }}
+    >
+      <h2 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Examples</h2>
+
+      {/* Tab selector */}
+      {snippets.length > 1 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {snippets.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIdx(i)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                i === activeIdx
+                  ? "bg-white/[0.1] text-slate-200 border-white/[0.18]"
+                  : "text-slate-500 border-white/[0.07] hover:text-slate-300 hover:bg-white/[0.06]"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Code block */}
+      <div className="relative rounded-xl overflow-hidden border border-white/[0.08] bg-[#070d18]">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.07] bg-white/[0.02]">
+          <span className="text-xs text-slate-500 font-medium truncate">{active.label}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/[0.06] border border-white/[0.1] text-slate-400">
+              {active.language}
+            </span>
+            <button
+              onClick={() => handleCopySnippet(activeIdx)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg
+                bg-white/[0.06] border border-white/[0.09] text-xs text-slate-400
+                hover:text-slate-200 hover:bg-white/[0.12] transition-colors"
+            >
+              {copiedIdx === activeIdx
+                ? <Check size={11} className="text-green-400" />
+                : <Copy size={11} />}
+              {copiedIdx === activeIdx ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        </div>
+
+        {/* Lines */}
+        <div className="overflow-x-auto">
+          <table className="w-full font-mono text-[13px] leading-6">
+            <tbody>
+              {lines.map((line, i) => (
+                <tr key={i} className="hover:bg-white/[0.02]">
+                  <td
+                    className="select-none text-right pr-4 pl-4 text-slate-600 w-8 shrink-0"
+                    style={{ minWidth: "3rem", userSelect: "none" }}
+                  >
+                    {i + 1}
+                  </td>
+                  <td className="pr-6 text-slate-300 whitespace-pre">
+                    {line || " "}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function ResourceDetailClient({ resource, related }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -431,6 +522,7 @@ export default function ResourceDetailClient({ resource, related }: Props) {
 
   const steps = GETTING_STARTED_STEPS[resource.type];
   const reviews = getReviewsForSlug(resource.slug);
+  const snippets = getSnippetsForSlug(resource.slug);
   const avgRating = averageRating(reviews);
   const usedBy = USED_BY[resource.type] ?? ["Airbnb", "Stripe", "Notion", "Linear"];
   const versions = getVersionsForSlug(resource.slug);
@@ -580,6 +672,9 @@ export default function ResourceDetailClient({ resource, related }: Props) {
                 </div>
               </motion.div>
             )}
+
+            {/* Code Examples */}
+            {snippets.length > 0 && <CodeExamples snippets={snippets} />}
 
             {/* Breaking change banner */}
             {hasBreakingLatest && latestVersion && (
