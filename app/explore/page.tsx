@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,9 @@ import Footer from "@/components/footer";
 import SearchModal from "@/components/search-modal";
 import ResourceCard from "@/components/resource-card";
 import ResourceOfDay from "@/components/resource-of-day";
+import CompareTray from "@/components/compare-tray";
 import { RESOURCES } from "@/lib/resources";
-import { ResourceType, UseCase, SortMode, TYPE_META } from "@/lib/types";
+import { Resource, ResourceType, UseCase, SortMode, TYPE_META } from "@/lib/types";
 import { localSearch } from "@/lib/search";
 
 const USE_CASE_LABELS: Record<UseCase, string> = {
@@ -43,8 +44,28 @@ function ExploreContent() {
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(24);
+  const [compareList, setCompareList] = useState<Resource[]>([]);
 
   useEffect(() => { setDisplayCount(24); }, [query, typeFilter, useCaseFilter, sortMode]);
+
+  const handleCompare = useCallback((r: Resource) => {
+    setCompareList((prev) => {
+      const already = prev.find((x) => x.id === r.id);
+      if (already) {
+        // Toggle off
+        return prev.filter((x) => x.id !== r.id);
+      }
+      if (prev.length >= 2) {
+        // Max 2: replace the oldest
+        return [prev[1], r];
+      }
+      return [...prev, r];
+    });
+  }, []);
+
+  const handleRemoveCompare = useCallback((id: string) => {
+    setCompareList((prev) => prev.filter((x) => x.id !== id));
+  }, []);
 
   const filtered = useMemo(() => {
     let list = RESOURCES;
@@ -239,7 +260,11 @@ function ExploreContent() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.3) }}
                 >
-                  <ResourceCard resource={resource} />
+                  <ResourceCard
+                    resource={resource}
+                    onCompare={handleCompare}
+                    inCompare={compareList.some((x) => x.id === resource.id)}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -258,6 +283,11 @@ function ExploreContent() {
       </main>
       <Footer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <CompareTray
+        resources={compareList}
+        onRemove={handleRemoveCompare}
+        onClear={() => setCompareList([])}
+      />
     </>
   );
 }
