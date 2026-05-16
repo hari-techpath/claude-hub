@@ -19,7 +19,7 @@ export default function HomePage() {
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
       <main>
-        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={82} />
+        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={107} />
         <StackStrip />
         <FeaturedSpotlight />
         <CategoryGrid counts={counts} />
