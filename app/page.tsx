@@ -17,7 +17,7 @@ export default function HomePage() {
     <>
       <Nav onSearchOpen={() => setSearchOpen(true)} />
       <main>
-        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={64} />
+        <Hero onSearchOpen={() => setSearchOpen(true)} totalCount={82} />
         <CategoryGrid counts={counts} />
         <TrendingSection />
       </main>
