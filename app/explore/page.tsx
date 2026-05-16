@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,6 +42,9 @@ function ExploreContent() {
   const [sortMode, setSortMode] = useState<SortMode>("trending");
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [displayCount, setDisplayCount] = useState(24);
+
+  useEffect(() => { setDisplayCount(24); }, [query, typeFilter, useCaseFilter, sortMode]);
 
   const filtered = useMemo(() => {
     let list = RESOURCES;
@@ -70,6 +73,8 @@ function ExploreContent() {
     }
   }, [query, typeFilter, useCaseFilter, sortMode]);
 
+  const displayed = filtered.slice(0, displayCount);
+
   const types = Object.entries(TYPE_META) as [ResourceType, typeof TYPE_META[ResourceType]][];
 
   return (
@@ -79,7 +84,7 @@ function ExploreContent() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Explore resources</h1>
-          <p className="text-slate-400 text-sm">{filtered.length} resources found</p>
+          <p className="text-slate-400 text-sm">{displayed.length} of {filtered.length} resources</p>
         </div>
 
         <ResourceOfDay />
@@ -223,7 +228,7 @@ function ExploreContent() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             <AnimatePresence>
-              {filtered.map((resource, i) => (
+              {displayed.map((resource, i) => (
                 <motion.div
                   key={resource.id}
                   layout
@@ -236,6 +241,16 @@ function ExploreContent() {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </motion.div>
+        )}
+        {filtered.length > displayCount && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 text-center">
+            <button
+              onClick={() => setDisplayCount((c) => c + 24)}
+              className="px-6 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] text-slate-400 hover:text-slate-200 text-sm transition-all"
+            >
+              Load more ({filtered.length - displayCount} remaining)
+            </button>
           </motion.div>
         )}
       </main>

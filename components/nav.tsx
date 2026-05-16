@@ -57,6 +57,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
             { href: "/explore?type=mcp", label: "MCPs" },
             { href: "/explore?type=skill", label: "Skills" },
             { href: "/explore?type=agent", label: "Agents" },
+            { href: "/submit", label: "Submit" },
           ].map((link) => (
             <Link
               key={link.href}
@@ -81,14 +82,12 @@ export default function Nav({ onSearchOpen }: NavProps) {
             </kbd>
           </button>
 
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/submit"
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/40 transition-all text-violet-300 text-sm font-medium"
           >
             Submit
-          </a>
+          </Link>
 
           <button
             className="md:hidden p-2 rounded-md text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors"
@@ -111,6 +110,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
               { href: "/explore?type=skill", label: "Skills" },
               { href: "/explore?type=agent", label: "Agents" },
               { href: "/explore?type=prompt", label: "Prompts" },
+              { href: "/submit", label: "Submit" },
             ].map((link) => (
               <Link
                 key={link.href}

@@ -84,15 +84,13 @@ export default function Footer() {
             <p className="text-xs text-slate-500 mb-4 leading-relaxed">
               Know a great resource that's missing? Submit a PR to add it.
             </p>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/submit"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 text-violet-300 text-xs font-medium transition-all"
             >
               <Github size={12} />
-              Submit resource
-            </a>
+              Submit a resource
+            </Link>
           </div>
         </div>
 
