@@ -693,6 +693,30 @@ export const resources: Resource[] = [
     verified: true,
     weeklyViews: 1600,
   },
+  {
+    id: "skill-hermes-tweet",
+    slug: "skill-hermes-tweet",
+    name: "Hermes Tweet",
+    tagline: "Native Hermes Agent plugin for X/Twitter automation",
+    description:
+      "Native Hermes Agent plugin for X/Twitter search, profile reads, trend checks, and approval-gated actions through Xquik. Ships a PyPI package, Hermes plugin entry point, and bundled skill guidance for safe read-first workflows.",
+    type: "skill",
+    tags: ["hermes-agent", "x-twitter", "social-media", "automation"],
+    author: "Xquik",
+    authorUrl: "https://github.com/Xquik-dev",
+    githubUrl: "https://github.com/Xquik-dev/hermes-tweet",
+    installCommand: "hermes plugins install Xquik-dev/hermes-tweet --enable",
+    stars: 10,
+    forks: 0,
+    lastUpdated: "2026-06-17",
+    complexity: "beginner",
+    useCases: ["productivity", "data-ops"],
+    featured: false,
+    trending: false,
+    hot: false,
+    verified: false,
+    weeklyViews: 0,
+  },
 
   // ── Agents ────────────────────────────────────────────────────────────────
   {
